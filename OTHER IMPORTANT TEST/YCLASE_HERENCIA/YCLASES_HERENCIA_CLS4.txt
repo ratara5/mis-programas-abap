@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASES_HERENCIA_CLS4
+*&---------------------------------------------------------------------*
+CLASS cls_robot DEFINITION INHERITING FROM cls_personaje.
+
+  PUBLIC SECTION.
+    METHODS asignar_atributos REDEFINITION.
+    METHODS volar.
+ENDCLASS.                    "cls_humano DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_robot IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_robot IMPLEMENTATION.
+
+  METHOD asignar_atributos.
+    vl_personaje = 'ROBOT'.
+    vl_armadura = 'SI'.
+    vl_escudo = 'SI'.
+    vl_espada = 'SI'.
+    vl_fuego = 'SI'.
+    vl_electricidad = 'SI'.
+    vl_fuerza = '50'.
+    vl_velocidad = '60km/h'.
+  ENDMETHOD.                    "asignar_atributos
+
+  METHOD volar.
+    WRITE: / 'Robot volando...'.
+  ENDMETHOD.                    "correr
+ENDCLASS.                    "cls_robot IMPLEMENTATION

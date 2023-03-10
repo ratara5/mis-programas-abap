@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASES_HERENCIA_CLS2
+*&---------------------------------------------------------------------*
+CLASS cls_humano DEFINITION INHERITING FROM cls_personaje.
+
+  PUBLIC SECTION.
+    METHODS asignar_atributos REDEFINITION.
+    METHODS correr.
+ENDCLASS.                    "cls_humano DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_humano IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_humano IMPLEMENTATION.
+
+  METHOD asignar_atributos.
+    vl_personaje = 'HUMANO'.
+    vl_armadura = 'SI'.
+    vl_escudo = 'SI'.
+    vl_espada = 'SI'.
+    vl_fuego = 'NO'.
+    vl_electricidad = 'NO'.
+    vl_fuerza = '10'.
+    vl_velocidad = '12km/h'.
+  ENDMETHOD.                    "asignar_atributos
+
+  METHOD correr.
+    WRITE: / 'Humano corriendo...'.
+  ENDMETHOD.                    "correr
+ENDCLASS.

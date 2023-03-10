@@ -1,0 +1,80 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASE_LOCAL_CLS1
+*&---------------------------------------------------------------------*
+CLASS cls_vehiculo DEFINITION.
+
+  PUBLIC SECTION.
+
+    DATA: vg_marca TYPE char20,
+          vg_modelo TYPE char30,
+          vg_color TYPE char15.
+
+    METHODS: asignar_atributos IMPORTING p_marca TYPE char20
+                                         p_modelo TYPE char30
+                                         p_spfli TYPE spfli_tab OPTIONAL
+                                         p_colores3 TYPE STANDARD TABLE OPTIONAL
+                               EXPORTING p_color TYPE char15
+                               CHANGING p_colores TYPE ANY TABLE OPTIONAL
+                                        p_colores2 TYPE STANDARD TABLE OPTIONAL.
+
+    CLASS-DATA: vg_estatico TYPE char50.
+    CLASS-METHODS metodo_estatico. "También pueden llevar IMPORTING, EXPORTING y CHANGING
+
+  PROTECTED SECTION.
+
+    DATA: vg_protected TYPE char10.
+
+    METHODS: metodo_protegido.
+
+  PRIVATE SECTION.
+
+    DATA: vg_private TYPE char10.
+
+    METHODS: metodo_privado.
+
+ENDCLASS.                    "cls_vehiculo DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_vehiculo IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_vehiculo IMPLEMENTATION.
+  METHOD: asignar_atributos.
+
+    "Asignar parametros del import.
+    vg_marca = p_marca.
+    vg_modelo = p_modelo.
+
+    "Regresar parámetros del export.
+    p_color = vg_color = 'rojo'.
+
+    "manipular parámetros que son tablas.
+    DATA wa_colores TYPE ty_colores.
+    DATA it_colores TYPE STANDARD TABLE OF ty_colores.
+
+    wa_colores-color = 'verde'.
+    APPEND wa_colores TO p_colores2.
+    APPEND wa_colores TO it_colores.
+    wa_colores-color = 'azul'.
+    APPEND wa_colores TO p_colores2.
+    wa_colores-color = 'negro'.
+    APPEND wa_colores TO p_colores2.
+
+    p_colores[] = it_colores[]. "Ya que p_colores fue definido como ANY TABLE
+
+    LOOP AT p_colores3 INTO wa_colores.
+    ENDLOOP.
+
+  ENDMETHOD.                    "asignar_atributos
+
+  METHOD metodo_estatico.
+  ENDMETHOD.                    "metodo_estatico
+
+  METHOD metodo_privado.
+  ENDMETHOD.                    "metodo_privado
+
+  METHOD metodo_protegido.
+  ENDMETHOD.                    "metodo_protegido
+
+ENDCLASS.                    "cls_vehiculo IMPLEMENTATION

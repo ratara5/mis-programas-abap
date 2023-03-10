@@ -1,0 +1,41 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_EX_ALL_ENTRIES_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_ex_all_entries_des1.
+
+DATA: it_flights_cities TYPE STANDARD TABLE OF ydesarrollo1,
+      it_flights_schedules TYPE STANDARD TABLE OF ysch_desarrollo1.
+
+SELECT * FROM ydesarrollo1
+  INTO TABLE it_flights_cities.
+
+"IF sy-subrc EQ 0.
+IF it_flights_cities IS NOT INITIAL.  " El uso común de SELECT FOR ALL ENTRIES requiere: 1.revisar que esta tabla (que es la
+  " tabla para establecer filtros) no esté vacía.
+
+  SELECT * FROM ysch_desarrollo1
+    INTO TABLE it_flights_schedules " Esta es la tabla de salida. Debe ser una tabla auxiliar con la estructura adecuada para
+    " el SELECT.
+    FOR ALL ENTRIES IN it_flights_cities " Esta es la tabla de entrada (auxiliar para establecer filtros mediante WHERE).
+    " En este caso simple, es una tabla interna 'fiel copia' de la tabla ydesarrollo1 en la base de datos.
+    " El uso común de SELECT FOR ALL ENTRIES requiere: 2.definir tabla de entrada (DATA...TYPE...) 3.hacer una copia de la tabla
+    " para establecer filtros (it_in=it_filtros) y 4.ordenar registros de la resultante en paso anterior y 5.eliminar duplicados
+    " (comparando algún campo clave?) de la misma resultante en paso 3., pero en este orden.
+    " <-> pasos 2. a 5. me devuelven la tabla de entrada.
+    WHERE carrid EQ it_flights_cities-carrid
+      AND connid EQ it_flights_cities-connid. "Es decir, en este caso simple, si se crea un nuevo registro en ysch_desarrollo1
+    " que no tenga coincidencia de carrid y connid en la tabla ydesarrollo1, entonces, no se va a ver en it_flights_schedules.
+    " Así mismo. si se crea un nuevo registro en ydesarrollo1 que no tenga coincidencia de carrid y connid en la tabla
+    " yshc_desarrollo, entonces no se va a ver en it_flights_schedules.
+
+  IF sy-subrc EQ 0.
+    cl_demo_output=>display( it_flights_schedules ).
+  ENDIF.
+
+ENDIF.
+"ENDIF

@@ -1,0 +1,44 @@
+*&---------------------------------------------------------------------*
+*& Report  YPRUEBA
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT YPRUEBA.
+
+DATA:
+    gr_itab TYPE REF TO data.
+
+data:  gr_table type ref to cl_salv_table.
+data:  gr_selections type ref to cl_salv_selections.
+
+*----------------------------------------------------------------------*
+FIELD-SYMBOLS:
+    <fs_itab> TYPE ANY TABLE.
+
+*----------------------------------------------------------------------*
+PARAMETERS
+    pa_tab TYPE dd02l-tabname DEFAULT 'KNA1'.
+
+
+*----------------------------------------------------------------------*
+START-OF-SELECTION.
+
+  CREATE DATA gr_itab TYPE STANDARD TABLE OF (pa_tab)
+                       WITH NON-UNIQUE DEFAULT KEY.
+
+  ASSIGN gr_itab->* TO <fs_itab>.
+
+  SELECT * FROM (pa_tab)
+      INTO TABLE <fs_itab>
+      UP TO 10 ROWS.
+
+
+  call method cl_salv_table=>factory
+  importing      r_salv_table = gr_table
+    changing      t_table      = <fs_itab>.
+
+* Display
+  gr_table->display( ).

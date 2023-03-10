@@ -1,0 +1,22 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_OTHER_TEST_DESAROLLO1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_other_test_desarollo1.
+
+DATA: fecha_hoy TYPE d,
+      cualquier_variable(12).
+
+fecha_hoy = sy-datum.
+
+CALL FUNCTION 'CONVERSION_EXIT_SDATE_OUTPUT'
+  EXPORTING
+    input  = fecha_hoy
+  IMPORTING
+    output = cualquier_variable.
+
+WRITE: cualquier_variable.

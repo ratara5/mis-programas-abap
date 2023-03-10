@@ -1,0 +1,52 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_FIELD_SYMBOL_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_field_symbol_des1.
+
+*structure name | age
+TYPES: BEGIN OF ty_data,
+        name TYPE string,
+        age TYPE i,
+       END OF ty_data.
+
+*workarea & internal table
+DATA: wa_data TYPE ty_data,
+      it_data TYPE STANDARD TABLE OF ty_data.
+
+*Variables for fill internal table by loop
+DATA: j TYPE n,
+      new_name TYPE string,
+      new_age TYPE i.
+
+*Field symbol to write results
+FIELD-SYMBOLS: <fs_line> TYPE ty_data.
+
+*Fill internal table
+**manually
+wa_data-name = 'Tom'.
+wa_data-age = 30.
+APPEND wa_data TO it_data.
+**manually
+wa_data-name = 'eva'.
+wa_data-age = 21.
+APPEND wa_data TO it_data.
+**by loop
+j = 1.
+DO 4 TIMES.
+  CONCATENATE 'Name' j INTO new_name RESPECTING BLANKS.
+  new_age = 30 + j.
+  wa_data-name = new_name.
+  wa_data-age = new_age.
+  APPEND wa_data TO it_data.
+  j = j + 1.
+ENDDO.
+
+*Show internal table
+LOOP AT it_data ASSIGNING <fs_line>.
+  WRITE:/ sy-vline,<fs_line>-name , sy-vline, <fs_line>-age, sy-vline.
+ENDLOOP.

@@ -1,0 +1,33 @@
+*&---------------------------------------------------------------------*
+*&  Include           YPRUEBACOL_TOP
+*&---------------------------------------------------------------------*
+
+TYPES: BEGIN OF es_kna1,
+        kunnr TYPE kunnr,
+        land1 TYPE land1,
+        name1 TYPE name1,
+        name2 TYPE name2,
+        ort01 TYPE ort01,
+       END OF es_kna1.
+
+DATA: ti_cus TYPE STANDARD TABLE OF es_kna1,
+      wa_cus     TYPE es_kna1.
+
+TYPES: BEGIN OF es_kna1_color,
+        kunnr TYPE kunnr,
+        land1 TYPE land1,
+        name1 TYPE name1,
+        name2 TYPE name2,
+        ort01 TYPE ort01,
+        color TYPE char4,
+       END OF es_kna1_color.
+
+DATA: ti_cus_col TYPE STANDARD TABLE OF es_kna1_color,
+      wa_cus_col     TYPE es_kna1_color.
+
+
+DATA lv_knunr TYPE kunnr.
+
+SELECTION-SCREEN BEGIN OF BLOCK cliente_id WITH FRAME TITLE text-002.
+  SELECT-OPTIONS s_knunr FOR lv_knunr.
+SELECTION-SCREEN END OF BLOCK cliente_id.

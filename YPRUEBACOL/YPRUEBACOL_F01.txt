@@ -1,0 +1,75 @@
+*&---------------------------------------------------------------------*
+*&  Include           YPRUEBACOL_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  PROCCESS
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM proccess .
+
+  CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = s_knunr
+  IMPORTING
+    output = s_knunr.
+
+ENDFORM.                    " PROCCESS
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM get_data .
+
+  SELECT kunnr land1 name1 name2 ort01
+  FROM kna1
+  INTO TABLE ti_cus
+  WHERE kunnr IN s_knunr.
+
+
+  LOOP AT ti_cus INTO wa_cus.
+
+    IF wa_cus-ort01 EQ 'MEDELLIN'.
+      wa_cus_col-color = '@08@'.
+    ENDIF.
+
+    IF wa_cus-ort01 NE 'MEDELLIN'.
+     wa_cus_col-color = '@0A@'.
+    ENDIF.
+
+    MOVE-CORRESPONDING wa_cus  TO wa_cus_col.
+
+    APPEND wa_cus_col TO ti_cus_col.
+
+  ENDLOOP.
+
+
+ENDFORM.                    " GET_DATA
+*&---------------------------------------------------------------------*
+*&      Form  PRINT_ALV
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM print_alv .
+
+  DATA: o_table TYPE REF TO cl_salv_table.
+    cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table = o_table
+        CHANGING
+        t_table = ti_cus_col
+    ).
+    o_table->get_functions( )->set_all( abap_true ).
+    o_table->DISPLAY( ).
+
+ENDFORM.                    " PRINT_ALV

@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_test_dwn_xcl_top
+*&---------------------------------------------------------------------*
+
+TYPES: BEGIN OF ty_ydesarrollo1,
+  carrid     TYPE ydesarrollo1-carrid,    "compañía aérea
+  connid     TYPE ydesarrollo1-connid,    "Código de conexión de vuelo directo
+  cityfrom   TYPE ydesarrollo1-cityfrom,  "Ciudad de salida
+  cityto     TYPE ydesarrollo1-cityto,  "Ciudad de destino
+  integer    TYPE i,               "CAMPO NUMERICO
+END OF ty_ydesarrollo1.
+
+TYPES tt_ydesarrollo1 TYPE STANDARD TABLE OF ty_ydesarrollo1.
+
+DATA: it_ydesarrollo1 TYPE tt_ydesarrollo1.
+DATA: wl_file TYPE string.

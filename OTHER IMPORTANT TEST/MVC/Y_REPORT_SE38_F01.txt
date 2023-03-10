@@ -1,0 +1,31 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_report_se38_f01
+*&---------------------------------------------------------------------*
+
+FORM display_alv.
+
+  DATA: o_table TYPE REF TO cl_salv_table.
+  DATA: o_display TYPE REF TO cl_salv_display_settings.
+
+  "Instanciar el ALV
+  TRY.
+      cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table = o_table
+      CHANGING
+        t_table = it_ordenes
+      ).
+    CATCH cx_salv_msg.
+  ENDTRY.
+
+  "Botones
+  TRY.
+      "Por defecto
+      o_table->get_functions( )->set_all( if_salv_c_bool_sap=>true ).
+    CATCH  cx_salv_msg.
+  ENDTRY.
+
+  "Desplegar
+  o_table->display( ).
+
+ENDFORM.

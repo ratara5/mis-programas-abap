@@ -1,0 +1,28 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_TEST_ALV_TOP
+*&---------------------------------------------------------------------*
+
+*TYPES: BEGIN OF ty_mara,
+*        MATNR TYPE MATNR,
+*        ERSDA TYPE ERSDA,
+*        ERNAM TYPE ERNAM,
+*        LAEDA TYPE LAEDA,
+*        AENAM TYPE AENAM,
+*       END OF ty_mara.
+*
+*DATA: it_mara TYPE STANDARD TABLE OF ty_mara.
+
+
+INCLUDE <icon>.
+
+TYPES: BEGIN OF ty_flights_cit_sch,
+          carrid TYPE s_carr_id,
+          connid TYPE s_conn_id,
+          cityfrom TYPE s_city,
+          cityto TYPE s_city,
+          deptime TYPE ysch_desarrollo1-deptime,
+      END OF ty_flights_cit_sch.
+
+DATA: it_flights_cit_sch TYPE STANDARD TABLE OF ty_flights_cit_sch.
+
+CONSTANTS: gc_true  TYPE sap_bool VALUE 'X'.

@@ -1,0 +1,26 @@
+*&---------------------------------------------------------------------*
+*& Report  YCLASE_HERENCIA
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT yclase_herencia.
+
+INCLUDE yclases_herencia_top.
+INCLUDE yclases_herencia_cls1. "superclase personaje
+INCLUDE yclases_herencia_cls2. "subclase humano
+INCLUDE yclases_herencia_cls3. "subclase humanoide
+INCLUDE yclases_herencia_cls4. "subclase robot
+
+START-OF-SELECTION.
+
+  CREATE OBJECT obj_humano.
+  CREATE OBJECT obj_robot.
+
+  CALL METHOD obj_humano->correr.
+  CALL METHOD obj_robot->volar.
+
+  CALL METHOD obj_humano->asignar_atributos.
+  CALL METHOD obj_humano->imprimir_atributos.

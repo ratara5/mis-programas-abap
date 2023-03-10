@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_report_se38_top
+*&---------------------------------------------------------------------*
+
+DATA: go_modelo_datos TYPE REF TO ycl_modelo_datos,
+      it_ordenes TYPE go_modelo_datos->tt_ordenes.
+
+* DATA: t_paramprog TYPE go_modelo_datos->t_param. "(Aún sin funcionar)
+
+
+TABLES: ekko.
+
+SELECTION-SCREEN BEGIN OF BLOCK block1 WITH FRAME.
+SELECT-OPTIONS: s_bukrs FOR ekko-s_bukrs,
+                s_bstyp FOR ekko-s_bstyp.
+SELECTION-SCREEN END OF BLOCK block1.

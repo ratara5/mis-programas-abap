@@ -1,0 +1,21 @@
+TYPES: BEGIN OF ty_flights_cit_sch,
+          carrid TYPE s_carr_id,
+          connid TYPE s_conn_id,
+          cityfrom TYPE s_city,
+          cityto TYPE s_city,
+          deptime TYPE ysch_desarrollo1-deptime,
+      END OF ty_flights_cit_sch.
+
+DATA: it_flights_cit_sch TYPE STANDARD TABLE OF ty_flights_cit_sch.
+
+SELECT a~carrid
+       a~connid
+       a~cityfrom
+       a~cityto
+       b~deptime
+    INTO TABLE it_flights_cit_sch
+    FROM ( ydesarrollo1 AS a
+         INNER JOIN ysch_desarrollo1 AS b
+                        ON b~carrid EQ a~carrid AND
+                           b~connid EQ a~connid ).
+ENDFORM.

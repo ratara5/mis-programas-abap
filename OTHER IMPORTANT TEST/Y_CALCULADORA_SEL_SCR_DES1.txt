@@ -1,0 +1,72 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_SELECTION_SCREEN_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_selection_screen_des1.
+
+SELECTION-SCREEN BEGIN OF BLOCK block1 WITH FRAME.
+PARAMETERS: p_num1 TYPE i DEFAULT 10,
+            p_num2 TYPE i.
+SELECTION-SCREEN END OF BLOCK block1.
+
+SELECTION-SCREEN BEGIN OF BLOCK block2 WITH FRAME.
+  PARAMETERS: p_sum type c RADIOBUTTON GROUP g1 DEFAULT 'X',
+              p_res type c RADIOBUTTON GROUP g1,
+              p_mul type c RADIOBUTTON GROUP g1,
+              p_div type c RADIOBUTTON GROUP g1.
+SELECTION-SCREEN END OF BLOCK block2.
+
+SELECTION-SCREEN BEGIN OF BLOCK block3 WITH FRAME.
+  PARAMETERS: p_msj_i TYPE c AS CHECKBOX DEFAULT 'X',
+              p_msj_s TYPE c AS CHECKBOX.
+SELECTION-SCREEN END OF BLOCK block3.
+
+DATA: v1_result(20) TYPE c.
+
+LOAD-OF-PROGRAM. "1. Acá aún no se inicializan los valores
+
+INITIALIZATION. "2. Acá son cargados los valores default
+
+AT SELECTION-SCREEN. "4. Acá se efectúan validaciones sobre los valores de la pantalla
+  IF p_div = abap_true AND p_num2 IS INITIAL.
+    MESSAGE 'Ingrese valor en p_num2' TYPE 'E'.
+  ENDIF.
+
+AT SELECTION-SCREEN OUTPUT. "3. Acá podemos modificar los elementos de la pantalla
+  IF p_div = abap_true.
+    LOOP AT SCREEN.
+      IF screen-name = 'P_NUM2'. "screen es una tabla que contiene todos los parámetros por nombre y con propiedades...
+        screen-required = 1. "...una de ellas es la propiedad request (oblgatorio). Este 1 significa que sí es obligatoria (?)
+        "también hay redirección a AT SELECTION-SCREEN (?)
+        MODIFY SCREEN.
+      ENDIF.
+    ENDLOOP.
+  ENDIF.
+
+START-OF-SELECTION. "5. Acá se realizan los cálculos
+    IF p_sum = abap_true.
+      v1_result = p_num1 + p_num2.
+    ELSEIF p_res = abap_true.
+      v1_result = p_num1 - p_num2.
+    ELSEIF p_mul = abap_true.
+      v1_result = p_num1 * p_num2.
+    ELSE.
+      IF p_num2 <> 0.
+        v1_result = p_num1 / p_num2.
+      ELSE.
+        MESSAGE 'No es posible dividir entre 0' TYPE 'I'.
+        EXIT.
+      ENDIF.
+    ENDIF.
+
+    IF p_msj_i = abap_true.
+      MESSAGE v1_result TYPE 'I'.
+    ENDIF.
+
+    IF p_msj_s = abap_true.
+      MESSAGE v1_result TYPE 'S'.
+    ENDIF.

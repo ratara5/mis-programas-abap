@@ -1,0 +1,44 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_MAP_TABLE_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_map_table_des1.
+
+*----------------------------------------------------------------------*
+*       CLASS demo DEFINITION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS demo DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS main.
+ENDCLASS.                    "demo DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS demo IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS demo IMPLEMENTATION.
+  METHOD main.
+    DATA: itab TYPE TABLE OF i,
+          xmlstr TYPE xstring.
+
+    DO 3 TIMES.
+      APPEND sy-index TO itab.
+    ENDDO.
+
+    CALL TRANSFORMATION id
+                        SOURCE table = itab
+                        RESULT XML xmlstr.
+
+    cl_abap_browser=>show_xml( xml_xstring = xmlstr ).
+  ENDMETHOD.                    "main
+ENDCLASS.                    "demo IMPLEMENTATION
+
+START-OF-SELECTION.
+  demo=>main( ).

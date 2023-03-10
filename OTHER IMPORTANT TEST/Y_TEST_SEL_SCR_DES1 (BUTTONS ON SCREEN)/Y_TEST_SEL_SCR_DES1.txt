@@ -1,0 +1,59 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_SEL_SCR_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT Y_TEST_SEL_SCR_DES1.
+
+INCLUDE Y_TEST_SEL_SCR_DES1_F01.
+
+"One way to create a button
+SELECTION-SCREEN: BEGIN OF BLOCK blk1 WITH FRAME TITLE text-000.
+    SELECTION-SCREEN PUSHBUTTON 2(20) btn1 USER-COMMAND cli1.
+    SELECTION-SCREEN PUSHBUTTON 24(42) btn2 USER-COMMAND cli2.
+SELECTION-SCREEN: END OF BLOCK blk1.
+
+"Another way to create a button
+SELECTION-SCREEN: BEGIN OF BLOCK blk2 WITH FRAME TITLE text-010.
+  SELECTION-SCREEN:
+    PUSHBUTTON 2(10) btn3 USER-COMMAND cli3,
+    PUSHBUTTON 22(10) btn4 USER-COMMAND cli4.
+SELECTION-SCREEN: END OF BLOCK blk2.
+
+"Action at click button
+AT SELECTION-SCREEN.
+  CASE sy-ucomm.
+    WHEN 'CLI1'.
+      "WRITE 'Clic en Aquí estamos'.
+      MESSAGE 'Hello' TYPE 'I'.
+    WHEN 'CLI2'.
+      WRITE 'Clic on Information'.
+      MESSAGE 'Clic on Information' TYPE 'E'.
+    WHEN 'CLI3'.
+      PERFORM frm_dummy.
+    WHEN 'CLI4'.
+      PERFORM validate_report.
+  ENDCASE.
+
+
+INITIALIZATION.
+  "One way to assign text a button
+  CONCATENATE ICON_INCOMPLETE 'Aquí estamos!' INTO btn1 SEPARATED BY space.
+
+  "Another way to assign text a button
+  CALL FUNCTION 'ICON_CREATE'
+    EXPORTING
+      name = ICON_INFORMATION
+      text = 'Información'
+      info = 'Botón Informativo'
+    IMPORTING
+      result = btn2
+    EXCEPTIONS
+      OTHERS = 0.
+
+  "Other way more
+  btn3 = ICON_CHECKED.
+  btn4 = ICON_DUMMY.

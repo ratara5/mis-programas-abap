@@ -1,0 +1,126 @@
+*&---------------------------------------------------------------------*
+*&  Include           YRAYPRUEBA_ALV_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  PROCESSS
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM processs .
+  CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_matr3
+  IMPORTING
+    output = lv_matr3.
+.
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_matr4
+  IMPORTING
+    output = lv_matr4.
+
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_matr5
+  IMPORTING
+    output = lv_matr5.
+
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_kunr1
+  IMPORTING
+    output = lv_kunr1.
+
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_kunr2
+  IMPORTING
+    output = lv_kunr2.
+
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = lv_kunr3
+  IMPORTING
+    output = lv_kunr3.
+
+
+ENDFORM.                    " PROCESSS
+
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM get_data .
+
+
+ENDFORM.                    " GET_DATA
+*&---------------------------------------------------------------------*
+*&      Form  IPRINT_ALV
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM iprint_alv .
+
+"Alv
+DATA: o_table TYPE REF TO cl_salv_table.
+  cl_salv_table=>factory(
+    IMPORTING
+      r_salv_table = o_table
+      CHANGING
+      t_table = ti_material_cliente
+  ).
+  o_table->get_functions( )->set_all( abap_true ).
+  o_table->DISPLAY( ).
+
+ENDFORM.                    " IPRINT_ALV
+*&---------------------------------------------------------------------*
+*&      Form  IGET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM iget_data .
+
+SELECT matnr ernam mtart
+  FROM mara
+  INTO TABLE ti_material_mara
+  WHERE matnr EQ lv_matr3 OR matnr EQ lv_matr4 OR matnr EQ lv_matr5.
+
+IF sy-subrc = 0.
+
+ENDIF.
+
+SELECT kunnr name1 mcod3
+  FROM kna1
+  INTO TABLE ti_cliente_kna1
+  WHERE kunnr EQ lv_kunr1 OR kunnr EQ lv_kunr2 OR kunnr EQ lv_kunr3.
+
+
+IF sy-subrc = 0.
+
+ENDIF.
+
+LOOP AT ti_material_mara INTO wa_mat_mara.
+
+  READ TABLE ti_cliente_kna1 INTO wa_emple_kna1 INDEX sy-tabix.
+
+  MOVE-CORRESPONDING wa_mat_mara   TO wa_mat_cli.
+  MOVE-CORRESPONDING wa_emple_kna1 TO wa_mat_cli.
+
+  APPEND wa_mat_cli TO ti_material_cliente.
+
+ENDLOOP.
+
+ENDFORM.                    " IGET_DATA

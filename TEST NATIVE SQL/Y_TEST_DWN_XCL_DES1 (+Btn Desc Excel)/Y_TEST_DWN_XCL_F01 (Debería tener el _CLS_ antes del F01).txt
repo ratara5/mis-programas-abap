@@ -1,0 +1,117 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_test_dwn_xcl_f01
+*&---------------------------------------------------------------------*
+
+*---------------------------------------------------------------------*
+*       FORM USER_COMMAND_01  Process Call Back Events (Begin)         *
+*---------------------------------------------------------------------*
+
+*---------------------------------------------------------------------*
+*      Form  GET_FILENAME
+*---------------------------------------------------------------------*
+*     Abrir navegador para seleccionar fichero
+*----------------------------------------------------------------------*
+FORM get_filename  CHANGING p_file TYPE string.
+
+  DATA w_file LIKE rlgrap-filename.
+
+  CALL FUNCTION 'KD_GET_FILENAME_ON_F4'
+    CHANGING
+      file_name     = w_file
+    EXCEPTIONS
+      mask_too_long = 1
+      OTHERS        = 2.
+
+  p_file = w_file.
+
+ENDFORM.                      "GET_FILENAME
+
+*---------------------------------------------------------------------*
+*      Form  DOWNLOAD_TO_EXC
+*---------------------------------------------------------------------*
+FORM download_to_exc  USING Pi_file  TYPE STRING
+                            it_ydesarrollo1 TYPE tt_ydesarrollo1. "ti_spfli TYPE type_t_spfli.
+
+  TYPES: BEGIN OF tl_name,
+    fldname(11) TYPE c,
+   END OF tl_name.
+
+  TYPES: BEGIN OF ty_excel,
+    carrid(3)    TYPE c,
+    connid(4)    TYPE c,
+    cityfrom(20) TYPE c,
+    cityto(20) TYPE c,
+    integer(15)  TYPE c,
+  END OF ty_excel.
+
+  DATA: tl_name  TYPE STANDARD TABLE OF tl_name.
+  DATA: tl_excel TYPE STANDARD TABLE OF ty_excel.
+
+  DATA: wl_file TYPE  rlgrap-filename.
+
+  FIELD-SYMBOLS:  <FN> TYPE tl_name,
+                  <FO> TYPE ty_ydesarrollo1,
+                  <FD> TYPE ty_excel.
+
+  wl_file = Pi_file.
+
+*  LOOP AT gt_fieldcat .
+*    APPEND INITIAL LINE TO tl_name ASSIGNING <FN>.
+*    <FN>-fldname =  gt_fieldcat-fieldname.
+*  ENDLOOP.
+
+LOOP AT it_ydesarrollo1 ASSIGNING <FO>. "ti_spfli
+
+    APPEND INITIAL LINE TO TL_EXCEL ASSIGNING <FD>.
+
+    MOVE: <FO>-carrid    TO <FD>-CARRID,
+          <FO>-connid    TO <FD>-CONNID,
+          <FO>-cityfrom  TO <FD>-cityfrom,
+          <FO>-cityto    TO <FD>-cityto.
+    WRITE <FO>-integer TO <FD>-INTEGER.
+
+  ENDLOOP.
+
+
+  CALL FUNCTION 'MS_EXCEL_OLE_STANDARD_DAT'
+    EXPORTING
+      file_name                 = wl_file
+      data_sheet_name           = 'VUELOS_YDESARROLLO1'
+      password_option           = 0
+    TABLES
+      data_tab                  = tl_excel
+      fieldnames                = tl_name
+    EXCEPTIONS
+      file_not_exist            = 1
+      filename_expected         = 2
+      communication_error       = 3
+      ole_object_method_error   = 4
+      ole_object_property_error = 5
+      invalid_filename          = 6
+      invalid_pivot_fields      = 7
+      download_problem          = 8
+      OTHERS                    = 9.
+
+  CASE sy-subrc.
+    WHEN 1.
+      MESSAGE e000(yv01) WITH 'File does not exist'.
+    WHEN 2.
+      MESSAGE e000(yv01) WITH 'Filename expected'.
+    WHEN 3.
+      MESSAGE e000(yv01) WITH 'Communication error'.
+    WHEN 4.
+      MESSAGE e000(yv01) WITH 'OLE object method error'.
+    WHEN 5.
+      MESSAGE e000(yv01) WITH 'OLE object property error'.
+    WHEN 6.
+      MESSAGE e000(yv01) WITH 'Invalid filename'.
+    WHEN 7.
+      MESSAGE e000(yv01) WITH 'Invalid pivot fields'.
+    WHEN 8.
+      MESSAGE e000(yv01) WITH 'Download problem'.
+    WHEN 9.
+      MESSAGE e000(yv01) WITH 'Other problem'.
+  ENDCASE.
+
+
+ENDFORM.                    " DOWNLOAD_TO_EXC

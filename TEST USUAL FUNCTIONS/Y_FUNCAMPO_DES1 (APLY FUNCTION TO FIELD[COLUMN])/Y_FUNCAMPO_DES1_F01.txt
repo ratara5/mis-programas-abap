@@ -1,0 +1,52 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_FUNCAMPO_DES1_F01
+*&---------------------------------------------------------------------*
+FORM select_data.
+
+  SELECT matnr ersda ernam
+    FROM mara
+     INTO TABLE it_mara.
+
+  ENDFORM.               "select_data
+
+*&---------------------------------------------------------------------*
+*&      Form  functions_data
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM functions_data.
+
+  LOOP AT it_mara INTO wa_mara.
+    READ TABLE it_mara_datestr INTO wa_mara_datestr INDEX sy-tabix.
+
+    CALL FUNCTION 'CONVERSION_EXIT_SDATE_OUTPUT'
+      EXPORTING
+        input  = wa_mara-ersda
+      IMPORTING
+        output = date_str.
+
+    wa_mara_datestr-ersda_str = date_str.
+    MOVE-CORRESPONDING wa_mara TO wa_mara_datestr.
+
+    APPEND wa_mara_datestr TO it_mara_datestr.
+
+  ENDLOOP.
+
+  ENDFORM.                    "functions_data
+
+FORM print_alv.
+  DATA: o_table TYPE REF TO cl_salv_table.
+  DATA: o_display TYPE REF TO cl_salv_display_settings.
+
+  cl_salv_table=>factory(
+  IMPORTING
+    r_salv_table = o_table
+  CHANGING
+    t_table = it_mara_datestr
+  ).
+
+  o_display = o_table->get_display_settings( ).
+  o_display->set_list_header('conexión, ciudades y hora salida').
+
+  o_table->display( ).
+ENDFORM.

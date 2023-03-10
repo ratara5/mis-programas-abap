@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_BINARY_SEARCH_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_binary_search_des1.
+
+TYPES: BEGIN OF ty_mara,
+        matnr TYPE matnr,
+        ersda TYPE ersda,
+       END OF ty_mara.
+
+
+DATA: it_mara TYPE STANDARD TABLE OF ty_mara.
+FIELD-SYMBOLS: <fs_mara> TYPE ty_mara.
+
+DATA: matnr_i TYPE matnr.
+
+SELECT matnr ersda
+  FROM mara
+  INTO TABLE it_mara.
+
+SORT it_mara ASCENDING BY matnr.
+
+matnr_i = '1000001'.
+
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING
+    input  = matnr_i
+  IMPORTING
+    output = matnr_i.
+
+READ TABLE it_mara WITH KEY matnr = matnr_i ASSIGNING <fs_mara> BINARY SEARCH.
+
+IF sy-subrc = 0.
+  WRITE:/ <fs_mara>-matnr, sy-vline, <fs_mara>-ersda.
+ENDIF.Z

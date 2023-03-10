@@ -1,0 +1,127 @@
+CLASS ycl_modelo_datos DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+  PUBLIC SECTION.
+    
+    TYPES: r_bukrs TYPE RANGE OF ekko-bukrs,
+           r_bstyp TYPE RANGE OF ekko-bstyp.
+
+*   TYPES: BEGIN OF t_param,
+*           s_ebeln TYPE RANGE OF ekko-ebeln,
+*           s_bstyp TYPE RANGE OF ekko-bstyp,
+*          END OF t_param. "(Aún sin funcionar)
+
+    TYPES: BEGIN OF t_ordenes,
+            ebeln TYPE ekko-ebeln,
+            ebelp TYPE ekpo-ebelp,
+            aedat TYPE ekko-aedat,
+            matnr TYPE ekpo-matnr,
+            maktx TYPE makt-maktx,
+           END OF t_ordenes.
+
+    TYPES: BEGIN OF t_entregas,
+            werks TYPE ekpo-werks,
+            lgort TYPE ekpo-lgort,
+            menge TYPE ekpo-menge,
+            meins TYPE ekpo-meins,
+           END OF t_entregas.
+
+    TYPES: tt_ordenes TYPE STANDARD TABLE OF t_ordenes WITH NON-UNIQUE KEY table_line.
+    TYPES: tt_entregas TYPE STANDARD TABLE OF t_entregas.
+
+    TYPES: yt_date LIKE sy-datum.
+
+    METHODS leer_ordenes_compra
+        IMPORTING
+	  s_bukrs TYPE r_bukrs
+          s_bstyp TYPE r_bstyp.
+*         !is_param TYPE t_param. (Aún sin funcionar)
+
+    METHODS eliminar_fechas_anteriores
+        IMPORTING
+        y_date TYPE yt_date.
+
+    METHODS get_lista_ordenes
+        RETURNING
+            value(rt_lista) TYPE tt_ordenes.
+
+    METHODS crear_entregas.
+
+
+  PROTECTED SECTION.
+
+
+  PRIVATE SECTION.
+    DATA ytt_ordenes TYPE tt_ordenes.
+    DATA ytt_entregas TYPE tt_entregas.
+
+ENDCLASS.
+
+
+
+CLASS YCL_MODELO_DATOS IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method YCL_MODELO_DATOS->CREAR_ENTREGAS
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD crear_entregas.
+    "Crear recepciones de materiales
+    IF ytt_ordenes IS NOT INITIAL.
+      DATA ytt_ordenes_aux TYPE tt_ordenes.
+      ytt_ordenes_aux = ytt_ordenes.
+      SORT ytt_ordenes_aux ASCENDING.
+      DELETE ADJACENT DUPLICATES FROM ytt_ordenes_aux COMPARING ebeln.
+      SELECT werks lgort menge meins
+      FROM ekpo
+      INTO TABLE ytt_entregas
+      FOR ALL ENTRIES IN ytt_ordenes_aux
+      WHERE ebeln EQ ytt_ordenes_aux-ebeln.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method YCL_MODELO_DATOS->ELIMINAR_FECHAS_ANTERIORES
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] Y_DATE                         TYPE        YT_DATE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD eliminar_fechas_anteriores.
+    DELETE ytt_ordenes WHERE aedat LE y_date.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method YCL_MODELO_DATOS->GET_LISTA_ORDENES
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] RT_LISTA                       TYPE        TT_ORDENES
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD get_lista_ordenes.
+    rt_lista[] = ytt_ordenes.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method YCL_MODELO_DATOS->LEER_ORDENES_COMPRA
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IS_PARAM                       TYPE        T_PARAM
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD leer_ordenes_compra.
+    SELECT a~ebeln
+           b~ebelp
+           a~aedat
+           b~matnr
+           c~maktx
+    INTO TABLE ytt_ordenes
+    FROM ( ekko AS a
+         INNER JOIN ekpo AS b
+               ON a~ebeln EQ b~ebeln
+         INNER JOIN makt AS c
+               ON b~matnr EQ c~matnr ).
+    WHERE a~bukrs IN s_bukrs AND a~bstyp IN s_bstyp.
+*   WHERE ebeln IN t_paramprog-s_ebeln AND bstyp IN t_paramprog-s_bstyp. (Aún sin funcionar)
+  ENDMETHOD.
+ENDCLASS.

@@ -1,0 +1,35 @@
+*&---------------------------------------------------------------------*
+*& Report  YCLASE_LOCAL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT yclase_local.
+
+INCLUDE yclase_local_top.
+INCLUDE yclase_local_cls1.
+
+START-OF-SELECTION.
+
+  CREATE OBJECT obj_vehiculo. "con esta sentencia siempre se llama el método constructor
+
+  CALL METHOD obj_vehiculo->asignar_atributos "Llamar método (de instancia)
+    EXPORTING
+      p_marca    = 'MARCA'
+      p_modelo   = 'DEPORTIVO'
+    IMPORTING
+      p_color    = vg_color_top.
+  WRITE: obj_vehiculo->vg_color. "Llamar atributo (de instancia)
+
+*  CALL METHOD cls_vehiculo=>metodo_estatico. "Llamar método estático (NO requiere instancia)
+*  WRITE: cls_vehiculo=>vg_estatico. "Llamar atributo estático (NO requiere instancia)
+
+*  CALL METHOD obj_vehiculo->metodo_protegido. "No funciona acá, solo dentro de la clase o las clases (subclases) que heredan
+*  CALL METHOD obj_vehiculo->metodo_privado. "No funciona acá, solo dentro de la clase
+
+
+
+
+  .

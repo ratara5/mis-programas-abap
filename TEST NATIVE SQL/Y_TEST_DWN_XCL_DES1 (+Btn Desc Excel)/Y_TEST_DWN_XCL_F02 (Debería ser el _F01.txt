@@ -1,0 +1,59 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_test_dwn_xcl_f02
+*&---------------------------------------------------------------------*
+
+FORM obtener_datos.
+*  SELECT matnr ersda ernam laeda aenam
+*    FROM mara
+*    INTO TABLE it_mara
+*    WHERE mara~matkl EQ '50820'.
+
+  SELECT carrid
+         connid
+         cityfrom
+         cityto
+      INTO CORRESPONDING FIELDS OF TABLE it_ydesarrollo1
+      FROM ydesarrollo1.
+
+ENDFORM.                    "obtener_datos
+
+*&---------------------------------------------------------------------*
+*&      Form  imprimir_alv
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM imprimir_alv.
+  DATA: o_table TYPE REF TO cl_salv_table.
+  DATA: o_display TYPE REF TO cl_salv_display_settings.
+  DATA r_handler_salv_table TYPE REF TO class_handle_events.
+
+  "Instanciar el ALV
+  TRY.
+      cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table = o_table
+      CHANGING
+        t_table = it_ydesarrollo1
+      ).
+    CATCH cx_salv_msg.
+  ENDTRY.
+
+  "Botones
+  TRY.
+      "Por defecto
+      o_table->get_functions( )->set_all( if_salv_c_bool_sap=>true ).
+
+      "Personalizados
+      o_table->set_screen_status( pfstatus = 'SALV_STANDARD'  "Nuestro STATUS GUI
+                                      report = sy-repid
+                                      set_functions = o_table->c_functions_all ).
+
+      CREATE OBJECT r_handler_salv_table.
+      SET HANDLER r_handler_salv_table->on_user_command FOR ALL INSTANCES.
+
+    CATCH  cx_salv_msg.
+  ENDTRY.
+
+  "Desplegar
+  o_table->display( ).
+ENDFORM.                    "imprimir_alv

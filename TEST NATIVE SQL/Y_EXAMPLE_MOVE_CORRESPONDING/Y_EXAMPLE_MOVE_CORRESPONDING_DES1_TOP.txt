@@ -1,0 +1,28 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_EXMPL_MOVE_CRRSPNDNG_D1_TOP
+*&---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_mara,
+        matnr TYPE matnr,
+        ernam TYPE ernam,
+        mtart TYPE mtart,
+       END OF ty_mara,
+       BEGIN OF ty_kna1,
+         kunnr TYPE kunnr,
+         name1 TYPE kunnr,
+         mcod3 TYPE kna1-mcod3,
+       END OF ty_kna1,
+       BEGIN OF ty_mara_kna1,
+        matnr TYPE matnr,
+        ernam TYPE ernam,
+        mtart TYPE mtart,
+        kunnr TYPE kunnr,
+        name1 TYPE kunnr,
+        mcod3 TYPE kna1-mcod3,
+       END OF ty_mara_kna1.
+
+DATA: es_mara TYPE ty_mara,
+      es_kna1 TYPE ty_kna1,
+      es_mara_kna1 TYPE ty_mara_kna1,
+      it_kna1 TYPE STANDARD TABLE OF ty_kna1,
+      it_mara TYPE STANDARD TABLE OF ty_mara,
+      it_mara_kna1 TYPE STANDARD TABLE OF ty_mara_kna1.

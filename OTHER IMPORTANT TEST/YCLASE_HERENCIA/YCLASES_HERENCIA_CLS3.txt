@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASES_HERENCIA_CLS3
+*&---------------------------------------------------------------------*
+CLASS cls_humanoide DEFINITION INHERITING FROM cls_personaje.
+
+  PUBLIC SECTION.
+    METHODS asignar_atributos REDEFINITION.
+    METHODS levitar.
+ENDCLASS.                    "cls_humanoide DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_humanoide IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_humanoide IMPLEMENTATION.
+
+  METHOD asignar_atributos.
+    vl_personaje = 'HUMANOIDE'.
+    vl_armadura = 'SI'.
+    vl_escudo = 'SI'.
+    vl_espada = 'SI'.
+    vl_fuego = 'SI'.
+    vl_electricidad = 'NO'.
+    vl_fuerza = '20'.
+    vl_velocidad = '25km/h'.
+  ENDMETHOD.                    "asignar_atributos
+
+  METHOD levitar.
+    WRITE: / 'Humanoide levitando...'.
+  ENDMETHOD.                    "correr
+ENDCLASS.

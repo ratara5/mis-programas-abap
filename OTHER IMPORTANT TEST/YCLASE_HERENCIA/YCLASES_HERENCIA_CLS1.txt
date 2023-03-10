@@ -1,0 +1,42 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASES_HERENCIA_CLS1
+*&---------------------------------------------------------------------*
+CLASS cls_personaje DEFINITION.
+
+  PUBLIC SECTION.
+    DATA: vl_personaje TYPE char30,
+          vl_fuerza TYPE i,
+          vl_velocidad TYPE char10,
+          vl_armadura TYPE char2,
+          vl_espada TYPE char2,
+          vl_escudo TYPE char2,
+          vl_fuego TYPE char2,
+          vl_electricidad TYPE char2.
+
+    METHODS:
+      asignar_atributos,
+      imprimir_atributos.
+
+ENDCLASS.                    "cls_personaje DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_personaje IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_personaje IMPLEMENTATION.
+
+  METHOD: asignar_atributos.
+  ENDMETHOD.                    "asignar_atributos
+
+  METHOD: imprimir_atributos.
+    WRITE: / 'Personaje: ', vl_personaje.
+    WRITE: / 'Fuerza: ', vl_fuerza.
+    WRITE: / 'Velocidad: ', vl_velocidad.
+    WRITE: / 'Armadura: ', vl_armadura.
+    WRITE: / 'Espada: ', vl_espada.
+    WRITE: / 'Escudo: ', vl_escudo.
+    WRITE: / 'Fuego: ', vl_fuego.
+    WRITE: / 'Electricidad: ', vl_electricidad.
+  ENDMETHOD.                    "imprimir_atributos
+ENDCLASS.                    "cls_personaje IMPLEMENTATION

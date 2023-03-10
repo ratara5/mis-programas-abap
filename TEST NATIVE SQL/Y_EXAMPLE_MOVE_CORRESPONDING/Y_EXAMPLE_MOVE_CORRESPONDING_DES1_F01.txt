@@ -1,0 +1,14 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_EXMPL_MOVE_CRRSPNDNG_D1_F01
+*&---------------------------------------------------------------------*
+FORM select_data.
+  SELECT matnr ernam mtart FROM mara INTO TABLE it_mara WHERE mtart EQ 'ZACT'.
+    SELECT kunnr name1 mcod3 FROM kna1 INTO TABLE it_kna1.
+
+      LOOP AT it_mara INTO es_mara.
+        READ TABLE it_kna1 INTO es_kna1 INDEX sy-tabix.
+        MOVE-CORRESPONDING es_mara TO es_mara_kna1.
+        MOVE-CORRESPONDING es_kna1 TO es_mara_kna1.
+        APPEND es_mara_kna1 TO it_mara_kna1.
+      ENDLOOP.
+ENDFORM.                    "select_data

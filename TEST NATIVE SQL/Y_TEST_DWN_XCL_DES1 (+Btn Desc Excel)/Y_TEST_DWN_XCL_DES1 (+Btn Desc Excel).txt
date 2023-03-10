@@ -1,0 +1,19 @@
+*&---------------------------------------------------------------------*
+*& Report  y_test_dwn_xcl_des1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_dwn_xcl_des1.
+
+INCLUDE y_test_dwn_xcl_top.
+INCLUDE y_test_dwn_xcl_cls. " clase manejadora de botón y su función. Dicha clase contiene el include con las FORMS get_filename y download_to_exc
+INCLUDE y_test_dwn_xcl_f02. " obtener_datos e imprimir_alv
+
+START-OF-SELECTION.
+  PERFORM obtener_datos.
+  PERFORM imprimir_alv.
+
+

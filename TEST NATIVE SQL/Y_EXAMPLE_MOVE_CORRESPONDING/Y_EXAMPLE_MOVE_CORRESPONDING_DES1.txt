@@ -1,0 +1,15 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_EXMPL_MOVE_CRRSPNDNG_D1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT Y_EXMPL_MOVE_CRRSPNDNG_D1.
+
+INCLUDE Y_EXMPL_MOVE_CRRSPNDNG_D1_TOP.
+INCLUDE Y_EXMPL_MOVE_CRRSPNDNG_D1_F01.
+
+START-OF-SELECTION.
+  PERFORM select_data.

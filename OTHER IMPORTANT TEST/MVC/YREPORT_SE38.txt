@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*& Report  yreport_se38
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT yreport_se38.
+
+INCLUDE y_report_se38_top.
+INCLUDE y_report_se38_f01.
+
+START-OF-SELECTION.
+
+CREATE OBJECT go_modelo_datos.
+go_modelo_datos->leer_ordenes_compra( EXPORTING s_bukrs = s_bukrs[] s_bstyp = s_bstyp[] ).
+*go_modelo_datos->leer_ordenes_compra( EXPORTING !is_param = t_paramprog ).
+go_modelo_datos->eliminar_fechas_anteriores( EXPORTING y_date = '20171231' ).
+it_ordenes = go_modelo_datos->get_lista_ordenes(  ).
+PERFORM display_alv.
+
+END-OF-SELECTION.

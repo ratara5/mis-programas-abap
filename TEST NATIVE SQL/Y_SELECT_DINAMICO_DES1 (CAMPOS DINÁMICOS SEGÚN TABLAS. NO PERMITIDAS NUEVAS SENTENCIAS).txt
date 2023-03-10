@@ -1,0 +1,109 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_SELECT_DINAMICO_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_select_dinamico_des1.
+
+PARAMETERS: p_carrid TYPE ydesarrollo1-carrid,
+            p_connid TYPE ydesarrollo1-connid,
+            p_matnr TYPE mara-matnr,
+            p_bukrs TYPE bkpf-bukrs,
+            p_belnr TYPE bkpf-belnr,
+            p_table TYPE tabname.
+
+DATA: v1_where TYPE string,
+      v1_campos TYPE string.
+
+FIELD-SYMBOLS: <fs_table> TYPE STANDARD TABLE,
+               <fs_item> TYPE any,
+               <gv_fldval> TYPE any.
+
+DATA: dref TYPE REF TO data,
+      wa_comp TYPE abap_compdescr,
+      it_comp TYPE STANDARD TABLE OF abap_compdescr,
+      table_type TYPE REF TO cl_abap_tabledescr,
+      struct_type TYPE REF TO cl_abap_structdescr.
+
+TYPES: BEGIN OF ty_mara,
+        matnr TYPE mara-matnr,
+        mtart TYPE mara-mtart,
+        matkl TYPE mara-matkl,
+        meins TYPE mara-meins,
+       END OF ty_mara.
+
+"Construir sentencia where
+CASE p_table.
+  WHEN 'YDESARROLLO1' OR 'YSCH_DESARROLLO1'.
+    IF p_carrid IS NOT INITIAL AND p_connid IS NOT INITIAL.
+      v1_where = 'carrid = p_carrid AND connid = p_connid'.
+    ELSEIF p_carrid IS NOT INITIAL AND p_connid IS INITIAL.
+      v1_where = 'carrid = p_carrid'.
+    ELSEIF p_carrid IS INITIAL AND p_connid IS NOT INITIAL.
+      v1_where = 'connid = p_connid'.
+    ENDIF.
+    v1_campos = '*'.
+
+  WHEN 'MARA'.
+    v1_where = 'matnr = p_matnr'.
+    v1_campos = 'matnr mtart matkl meins'.
+
+  WHEN 'BKPF' OR 'BKSEG'.
+    IF p_bukrs IS NOT INITIAL AND p_belnr IS NOT INITIAL.
+      v1_where = 'bukrs = p_bukrs AND belnr = p_belnr'.
+    ELSEIF p_bukrs IS NOT INITIAL AND p_belnr IS INITIAL.
+      v1_where = 'bukrs = p_bukrs'.
+    ELSEIF p_bukrs IS INITIAL AND p_belnr IS NOT INITIAL.
+      v1_where = 'belnr = p_belnr'.
+    ENDIF.
+    v1_campos = '*'.
+
+  WHEN OTHERS.
+ENDCASE.
+
+
+"Se pueden efectuar declaraciones en línea
+
+"Ejecutar el select normal
+*SELECT * FROM ydesarrollo1
+*  INTO TABLE it_ydes1
+*  WHERE carrid = p_carrid
+*    AND connid = p_connid.
+
+"Asignar la estructura a la tabla dinámica
+IF p_table = 'MARA'.
+  CREATE DATA dref TYPE TABLE OF ('TY_MARA'). "Dado que los campos a consultar
+  "de MARA solo serán 4 y la estructura los contemplaría TODOS. TY_MARA debe ser en mayúsculas.
+  ASSIGN dref->* TO <fs_table>.
+ELSE.
+  CREATE DATA dref TYPE TABLE OF (p_table).
+  ASSIGN dref->* TO <fs_table>.
+ENDIF.
+
+"Obtener los campos que contiene la estructura
+table_type ?= cl_abap_tabledescr=>describe_by_data( <fs_table> ).
+struct_type ?= table_type->get_table_line_type( ).
+it_comp[] = struct_type->components.
+
+"Obtener los campos que contiene la estructura CON LAS NUEVAS SENTECIAS ABAP
+"DATA(it_comp) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name(
+"p_table ) )=>get_components( ).
+
+"Ejecutar el select dinámico
+SELECT (v1_campos)
+  FROM (p_table)
+  INTO TABLE <fs_table>
+  WHERE (v1_where).
+
+"Mostrar los resultados
+IF sy-subrc = 0.
+  LOOP AT <fs_table> ASSIGNING <fs_item>.
+    LOOP AT it_comp INTO wa_comp.
+      ASSIGN COMPONENT wa_comp-name OF STRUCTURE <fs_item> TO <gv_fldval>.
+      WRITE <gv_fldval>.
+    ENDLOOP.
+  ENDLOOP.
+ENDIF.

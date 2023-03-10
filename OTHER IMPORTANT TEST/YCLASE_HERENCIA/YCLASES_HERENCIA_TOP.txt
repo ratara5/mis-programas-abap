@@ -1,0 +1,15 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASES_HERENCIA_TOP
+*&---------------------------------------------------------------------*
+DATA: vg_color_top TYPE char15.
+
+
+CLASS cls_personaje DEFINITION DEFERRED. "***
+CLASS cls_humano DEFINITION DEFERRED. "***
+CLASS cls_humanoide DEFINITION DEFERRED. "***
+CLASS cls_robot DEFINITION DEFERRED. "***
+
+DATA: obj_personaje TYPE REF TO cls_personaje.
+DATA: obj_humano TYPE REF TO cls_humano.
+DATA: obj_humanoide TYPE REF TO cls_humanoide.
+DATA: obj_robot TYPE REF TO cls_robot.

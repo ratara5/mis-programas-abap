@@ -1,0 +1,46 @@
+*&---------------------------------------------------------------------*
+*&  Include           YRAYPRUEBA_ALV_TOP
+*&---------------------------------------------------------------------*
+
+TYPES: BEGIN OF es_mara,    ".Estructura tabla mara
+        matnr TYPE matnr,
+        ernam TYPE ernam,
+        mtart TYPE mtart,
+       END OF es_mara.
+
+DATA: ti_material_mara TYPE STANDARD TABLE OF es_mara,
+      wa_mat_mara      TYPE es_mara.
+
+TYPES: BEGIN OF es_kna1,
+        kunnr TYPE kna1-kunnr,
+        name1 TYPE kna1-name1,
+        mcod3 TYPE kna1-mcod3,
+      END OF es_kna1.
+
+DATA: ti_cliente_kna1 TYPE STANDARD TABLE OF es_kna1,
+      wa_emple_kna1 TYPE es_kna1.
+
+TYPES: BEGIN OF es_kna1_mara,
+        matnr TYPE matnr,
+        ernam TYPE ernam,
+        mtart TYPE mtart,
+        kunnr TYPE kna1-kunnr,
+        name1 TYPE kna1-name1,
+        mcod3 TYPE kna1-mcod3,
+      END OF es_kna1_mara.
+
+DATA: ti_material_cliente TYPE STANDARD TABLE OF es_kna1_mara,
+      wa_mat_cli TYPE es_kna1_mara.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK material_id WITH FRAME TITLE text-001.
+PARAMETERS: lv_matr3 TYPE es_mara-matnr,
+            lv_matr4 TYPE es_mara-matnr,
+            lv_matr5 TYPE es_mara-matnr.
+SELECTION-SCREEN END OF BLOCK material_id.
+
+SELECTION-SCREEN BEGIN OF BLOCK cliente_id WITH FRAME TITLE text-002.
+PARAMETERS: lv_kunr1 TYPE es_kna1-kunnr,
+            lv_kunr2 TYPE es_kna1-kunnr,
+            lv_kunr3 TYPE es_kna1-kunnr.
+SELECTION-SCREEN END OF BLOCK cliente_id.

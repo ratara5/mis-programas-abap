@@ -1,0 +1,31 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_EXAMPLE_FIELD_SYMBOLS_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+Report  Y_EXAMPLE_FIELD_SYMBOLS_DES1.
+
+FIELD-SYMBOLS: <f1> TYPE ANY, <f2> TYPE i.
+DATA: text(20) TYPE c VALUE 'Hello, how are you?',
+      num TYPE i VALUE 5,
+      BEGIN OF line1,
+        col1 TYPE f VALUE '1.1e+10',
+        col2 TYPE i VALUE '1234',
+      END OF line1,
+      line2 LIKE line1.
+
+ASSIGN text TO <f1>.
+ASSIGN num TO <f2>.
+
+DESCRIBE FIELD <f1> LENGTH <f2> in CHARACTER MODE.
+WRITE: / <f1>, 'has length', num.
+
+ASSIGN line1 TO <f1>.
+ASSIGN line2-col2 TO <f2>.
+
+MOVE <f1> TO line2.
+ASSIGN 'LINE2-COL2 =' TO <f1>.
+WRITE: / <f1>, <f2>.

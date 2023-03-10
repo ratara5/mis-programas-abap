@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TAB_TO_XML_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_tab_to_xml_des1.
+
+DATA: it_mara TYPE ytt_mara_des1,
+      xmlstr TYPE xstring.
+
+SELECT matnr ersda ernam laeda
+  FROM mara
+    INTO TABLE it_mara.
+
+START-OF-SELECTION.
+  CALL TRANSFORMATION ytr_mara_des1
+    SOURCE yroot = it_mara[]
+    RESULT XML xmlstr.
+
+  cl_abap_browser=>show_xml( xml_xstring = xmlstr ).

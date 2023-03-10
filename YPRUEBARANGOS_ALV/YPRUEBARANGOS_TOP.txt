@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*&  Include           YPRUEBARANGOS_TOP
+*&---------------------------------------------------------------------*
+
+TYPES: BEGIN OF es_mara,    ".Estructura tabla mara
+        matnr TYPE matnr,
+        ernam TYPE ernam,
+        mtart TYPE mtart,
+       END OF es_mara.
+
+DATA: ti_material_mara TYPE STANDARD TABLE OF es_mara,
+      wa_mat_mara      TYPE es_mara.
+
+DATA lv_matnr TYPE matnr.
+
+SELECT-OPTIONS s_matnr FOR lv_matnr.

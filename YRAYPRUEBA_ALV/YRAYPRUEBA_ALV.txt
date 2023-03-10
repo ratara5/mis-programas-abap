@@ -1,0 +1,21 @@
+*&---------------------------------------------------------------------*
+*& Report  YRAYPRUEBA_ALV
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT yrayprueba_alv.
+
+
+INCLUDE yrayprueba_alv_top.
+INCLUDE yrayprueba_alv_f01.
+
+START-OF-SELECTION.
+
+  PERFORM processs.
+  PERFORM iget_data.
+  PERFORM iprint_alv.
+
+END-OF-SELECTION.

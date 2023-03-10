@@ -1,0 +1,75 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_SELECT_DINAMICO_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_select_dinamico_des1.
+
+PARAMETERS: p_carrid TYPE ydesarrollo1-carrid,
+            p_connid TYPE ydesarrollo1-connid,
+            p_table TYPE tabname.
+
+DATA: v1_where TYPE string.
+
+FIELD-SYMBOLS: <fs_table> TYPE STANDARD TABLE,
+               <fs_item> TYPE any,
+               <gv_fldval> TYPE any.
+
+DATA: dref TYPE REF TO data,
+      wa_comp TYPE abap_compdescr,
+      it_comp TYPE STANDARD TABLE OF abap_compdescr,
+      table_type TYPE REF TO cl_abap_tabledescr,
+      struct_type TYPE REF TO cl_abap_structdescr.
+
+"Construir sentencia where
+IF p_carrid IS NOT INITIAL AND p_connid IS NOT INITIAL.
+  "CONCATENATE 'CARRID = ''' p_carrid ''' AND CONNID = ''' p_connid '''' INTO v1_where RESPECTING BLANKS.
+  v1_where = 'carrid = p_carrid AND connid = p_connid'. "Una manera más concisa de ejecutar la instrucción inmediatamente anterior
+  "USO DE NUEVAS SENTENCIAS PARA MEJORAR (?) EL CÓDIGO
+  "Los ampersands && reemplazan el CONCATENATE
+ELSEIF p_carrid IS NOT INITIAL AND p_connid IS INITIAL.
+  "CONCATENATE 'CARRID = ''' p_carrid '''' INTO v1_where RESPECTING BLANKS.
+  v1_where = 'carrid = p_carrid'. "Una manera más concisa de ejecutar la instrucción inmediatamente anterior
+ELSEIF p_carrid IS INITIAL AND p_connid IS NOT INITIAL.
+  "CONCATENATE 'CONNID = ''' p_connid '''' INTO v1_where RESPECTING BLANKS.
+  v1_where = 'connid = p_connid'. "Una manera más concisa de ejecutar la instrucción inmediatamente anterior
+ENDIF.
+
+
+"Se pueden efectuar declaraciones en línea
+
+"Ejecutar el select normal
+*SELECT * FROM ydesarrollo1
+*  INTO TABLE it_ydes1
+*  WHERE carrid = p_carrid
+*    AND connid = p_connid.
+
+"Asignar la estructura a la tabla dinámica
+CREATE DATA dref TYPE TABLE OF (p_table).
+ASSIGN dref->* TO <fs_table>.
+
+"Obtener los campos que contiene la estructura
+table_type ?= cl_abap_tabledescr=>describe_by_data( <fs_table> ).
+struct_type ?= table_type->get_table_line_type( ).
+it_comp[] = struct_type->components.
+
+"Ejecutar el select dinámico
+SELECT * FROM (p_table) "dar nombre de la tabla, consecuente con la consulta WHERE de los campos. En este caso, la tabla YDESARROLLO1
+  INTO TABLE <fs_table> "tabla sin estructura
+  WHERE (v1_where).
+
+"Mostrar los resultados
+IF sy-subrc = 0.
+  LOOP AT <fs_table> ASSIGNING <fs_item>.
+  "LOOP AT <fs_table> ASSIGNING FIELD-SYMBOL(<fs_item>) "DECLARACIÓN EN LÍNEA: Con esto ya no se requiere la definición en las lineas iniciales
+    "del código
+    LOOP AT it_comp INTO wa_comp.
+    "LOOP AT it_comp INTO DATA(wa_comp).  "DECLARACIÓN EN LÍNEA: Con esto ya no se requiere la definición en las lineas iniciales
+    "del código
+      ASSIGN COMPONENT wa_comp-name OF STRUCTURE <fs_item> TO <gv_fldval>.
+        WRITE <gv_fldval>.
+  ENDLOOP.
+ENDIF.

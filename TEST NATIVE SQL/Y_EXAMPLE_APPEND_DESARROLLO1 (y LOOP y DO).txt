@@ -1,0 +1,25 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_EXAMPLE_APPEND_DESARROLLO1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_example_append_desarrollo1.
+
+DATA: it_tab TYPE TABLE OF i,
+      rnd    TYPE REF TO   cl_abap_random_int,
+      wa_tab TYPE          i.
+
+rnd = cl_abap_random_int=>create( seed = + sy-uzeit
+                                  min  = 1
+                                  max  = 100 ).
+
+DO 100 TIMES.
+  APPEND rnd->get_next( ) TO it_tab.
+ENDDO.
+
+LOOP AT it_tab INTO wa_tab.
+  WRITE: /, wa_tab.
+ENDLOOP.

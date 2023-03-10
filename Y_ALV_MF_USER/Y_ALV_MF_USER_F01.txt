@@ -1,0 +1,117 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_ALV_MF_USER_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM get_data .
+  SELECT carrid connid price currency seatsmax seatsocc
+    FROM sflight
+      INTO TABLE gt_sflight
+        WHERE carrid eq p_carr.
+
+ENDFORM.                    " GET_DATA
+*&---------------------------------------------------------------------*
+*&      Form  BUILD_FIELD_CAT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM build_field_cat .
+data ls_fieldcat type slis_fieldcat_alv.
+
+ls_fieldcat-fieldname = 'CARRID'.
+ls_fieldcat-seltext_l = 'Airline code'.
+ls_fieldcat-key = abap_true.
+APPEND ls_fieldcat to gt_fieldcat.
+
+clear ls_fieldcat.
+ls_fieldcat-fieldname = 'CONNID'.
+ls_fieldcat-seltext_l = 'Flight connection number'.
+APPEND ls_fieldcat to gt_fieldcat.
+
+clear ls_fieldcat.
+ls_fieldcat-fieldname = 'PRICE'.
+ls_fieldcat-seltext_l = 'Airfare'.
+APPEND ls_fieldcat to gt_fieldcat.
+
+clear ls_fieldcat.
+ls_fieldcat-fieldname = 'CURRENCY'.
+ls_fieldcat-seltext_l = 'Local currency of airline'.
+APPEND ls_fieldcat to gt_fieldcat.
+
+clear ls_fieldcat.
+ls_fieldcat-fieldname = 'SEATSMAX'.
+ls_fieldcat-seltext_l = 'Maximum capacity in economy class'.
+APPEND ls_fieldcat to gt_fieldcat.
+
+clear ls_fieldcat.
+ls_fieldcat-fieldname = 'SEATSOCC'.
+ls_fieldcat-seltext_l = 'Occupied seats in economy class'.
+APPEND ls_fieldcat to gt_fieldcat.
+
+
+
+
+ENDFORM.                    " BUILD_FIELD_CAT
+*&---------------------------------------------------------------------*
+*&      Form  DISPLAY_ALV_LIST
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM display_alv_list .
+  CALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'
+   EXPORTING
+*     I_INTERFACE_CHECK              = ' '
+*     I_BYPASSING_BUFFER             =
+*     I_BUFFER_ACTIVE                = ' '
+      I_CALLBACK_PROGRAM             = sy-repid
+*     I_CALLBACK_PF_STATUS_SET       = ' '
+*     I_CALLBACK_USER_COMMAND        = ' '
+*     I_STRUCTURE_NAME               =
+*     IS_LAYOUT                      =
+      IT_FIELDCAT                    = gt_fieldcat
+*     IT_EXCLUDING                   =
+*     IT_SPECIAL_GROUPS              =
+*     IT_SORT                        =
+*     IT_FILTER                      =
+*     IS_SEL_HIDE                    =
+*     I_DEFAULT                      = 'X'
+*     I_SAVE                         = ' '
+*     IS_VARIANT                     =
+*     IT_EVENTS                      =
+*     IT_EVENT_EXIT                  =
+*     IS_PRINT                       =
+*     IS_REPREP_ID                   =
+*     I_SCREEN_START_COLUMN          = 0
+*     I_SCREEN_START_LINE            = 0
+*     I_SCREEN_END_COLUMN            = 0
+*     I_SCREEN_END_LINE              = 0
+*     IR_SALV_LIST_ADAPTER           =
+*     IT_EXCEPT_QINFO                =
+*     I_SUPPRESS_EMPTY_DATA          = ABAP_FALSE
+*   IMPORTING
+*     E_EXIT_CAUSED_BY_CALLER        =
+*     ES_EXIT_CAUSED_BY_USER         =
+    TABLES
+      t_outtab                       = gt_sflight
+   EXCEPTIONS
+     PROGRAM_ERROR                  = 1
+     OTHERS                         = 2
+            .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+    write 'Exception error'.
+  ENDIF.
+
+ENDFORM.                    " DISPLAY_ALV_LIST

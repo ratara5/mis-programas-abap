@@ -1,0 +1,13 @@
+*&---------------------------------------------------------------------*
+*&  Include           YCLASE_LOCAL_TOP
+*&---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_colores,
+        color TYPE char15,
+      END OF ty_colores.
+
+DATA: vg_color_top TYPE char15.
+
+
+CLASS cls_vehiculo DEFINITION DEFERRED. "***
+DATA: obj_vehiculo TYPE REF TO cls_vehiculo. "Esta declaración por sí sola, generaría error, ya que la clase aún no ha sido definida
+"Entonces, se requiere de la anterior instrucción a esta ***.

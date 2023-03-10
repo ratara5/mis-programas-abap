@@ -1,0 +1,42 @@
+*&---------------------------------------------------------------------*
+*& Report Y_VARIABLES_USUAPP
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT y_variables_usuapp.
+
+*Declaración de variable de tipo fecha COMPLETO
+DATA fecha TYPE d.
+
+*Declaración de variable de tipo cadena INCOMPLETO LOGITUD 4. Si no se indica,
+*el sistema le indica por defecto el valor 1 a la longitud. Y si ejecuta write,
+*solo se escribe un caracter.
+DATA cadena TYPE c LENGTH 4.
+
+*Declaración de variable de tipo número empaquetado INCOMPLETO LONGITUD 10, de
+*los cuales 2 son decimales.
+DATA numero TYPE p LENGTH 10 DECIMALS 2.
+
+*Declaración de varias variables en una sola instrucción.
+DATA: mydate   TYPE d,
+      mynumber TYPE p LENGTH 4 DECIMALS 3,
+      mystring TYPE c LENGTH 4.
+
+fecha = '20230129'.
+cadena = 'Hola'.
+numero = '45500100.10'.
+
+mydate = '20500101'.
+mynumber = '1.234'.
+mystring = 'user'.
+
+WRITE fecha DD/MM/YY.
+WRITE / cadena.
+WRITE / numero.
+
+*Escribir varias variables en una misma instrucción
+WRITE: / cadena, 'aprendiz ABAP hoy es', fecha.
+
+WRITE: / 'Hola', mystring, 'desde el', mydate.
+
+-----------------------------------------------------------------------------------------------

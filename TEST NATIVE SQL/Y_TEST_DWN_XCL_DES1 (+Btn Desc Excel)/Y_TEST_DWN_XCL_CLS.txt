@@ -1,0 +1,41 @@
+*&---------------------------------------------------------------------*
+*&  Include  y_test_dwn_xcl_cls
+*&---------------------------------------------------------------------*
+
+INCLUDE y_test_dwn_xcl_f01. " user_command_01 (Btn '&EXC' Borrado y reemplazado por la clase manejadora), get_filename
+" (Abrir navegador para seleccionar fichero), download_to_exec (BAPI descargar a Excel)
+
+*---------------------------------------------------------------------*
+*       CLASS class_handle_events DEFINITION
+*---------------------------------------------------------------------*
+*  define a local class for handling events of cl_salv_table
+*---------------------------------------------------------------------*
+CLASS class_handle_events DEFINITION.
+  PUBLIC SECTION.
+    METHODS:
+      on_user_command
+                    FOR EVENT added_function OF cl_salv_events
+        IMPORTING e_salv_function. "e_salv_function es como el OK_CODE de las dynpros
+
+ENDCLASS.                    "lcl_handle_events DEFINITION
+
+*---------------------------------------------------------------------*
+*       CLASS lcl_handle_events IMPLEMENTATION
+*---------------------------------------------------------------------*
+* implement the events for handling the events of cl_salv_table
+*---------------------------------------------------------------------*
+CLASS class_handle_events IMPLEMENTATION.
+
+  METHOD on_user_command.
+
+    CASE e_salv_function. "Contiene el cod. de funcion del pulsador seleccionado
+*      WHEN '&BT1'.  "mensaje por pantalla
+*        MESSAGE 'Esto es una prueba, Haz hecho clic' TYPE 'I'.
+      WHEN '&EXC'.
+          PERFORM get_filename  CHANGING wl_file.
+          PERFORM download_to_exc  USING wl_file it_ydesarrollo1.
+   ENDCASE.
+
+  ENDMETHOD.                    "on_user_command
+
+ENDCLASS.                    "lcl_handle_events IMPLEMENTATION

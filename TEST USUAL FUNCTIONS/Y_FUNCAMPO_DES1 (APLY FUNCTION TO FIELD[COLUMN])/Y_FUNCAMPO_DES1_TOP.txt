@@ -1,0 +1,21 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_FUNCAMPO_DES1_TOP
+*&---------------------------------------------------------------------*
+
+TYPES: BEGIN OF ty_mara,
+        matnr TYPE matnr,
+        ersda TYPE ersda,
+        ernam TYPE ernam,
+      END OF ty_mara,
+
+      BEGIN OF ty_mara_datestr,
+        matnr TYPE matnr,
+        ersda_str TYPE c LENGTH 12,
+        ernam TYPE ernam,
+      END OF ty_mara_datestr.
+
+DATA: date_str(12),
+      wa_mara TYPE ty_mara,
+      it_mara TYPE STANDARD TABLE OF ty_mara,
+      wa_mara_datestr TYPE ty_mara_datestr,
+      it_mara_datestr TYPE STANDARD TABLE OF ty_mara_datestr.

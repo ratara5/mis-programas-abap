@@ -1,0 +1,18 @@
+*&---------------------------------------------------------------------*
+*& Report  YPRUEBARANGOS_ALV
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT YPRUEBARANGOS_ALV.
+
+INCLUDE YPRUEBARANGOS_TOP.
+INCLUDE YPRUEBARANGOS_F01.
+
+START-OF-SELECTION.
+ PERFORM proccess.
+ PERFORM get_data.
+ PERFORM print_alv.
+END-OF-SELECTION.

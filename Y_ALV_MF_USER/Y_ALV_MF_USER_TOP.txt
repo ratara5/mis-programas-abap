@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_ALV_MF_USER_TOP
+*&---------------------------------------------------------------------*
+"TYPE-POOL slis. "No es obligatoria en nuevas versiones SAP
+
+types: begin of gs_sflight,
+        carrid type s_carr_id,
+        connid type s_conn_id,
+        price  type s_price,
+        currency type s_curr,
+        seatsmax type s_seatsmax,
+        seatsocc type s_seatsocc,
+        end of gs_sflight.
+
+data: gt_sflight type table of gs_sflight,
+      gt_fieldcat type slis_t_fieldcat_alv.
