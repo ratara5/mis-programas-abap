@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_SELECT_DISTINCT_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_select_distinct_des1.
+
+INCLUDE y_test_select_distinct_top.
+INCLUDE y_test_select_distinct_f01.
+INCLUDE y_test_select_distinct_f02.
+
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM create_listbox.
+
+AT SELECTION-SCREEN.
+  PERFORM get_item_selected.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  PERFORM print_alv.

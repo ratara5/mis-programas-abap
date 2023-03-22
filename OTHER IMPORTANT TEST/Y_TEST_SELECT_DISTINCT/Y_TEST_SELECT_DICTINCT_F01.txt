@@ -1,0 +1,66 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_TEST_SELECT_DISTINCT_F01
+*&---------------------------------------------------------------------*
+
+FORM get_listbox_data.
+  SELECT DISTINCT carrid
+    FROM ydesarrollo1
+      INTO TABLE it_carrid.
+ENDFORM.                    "get_listbox_data
+
+
+*&---------------------------------------------------------------------*
+*&      Form  create_listbox
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM create_listbox.
+
+ SELECT DISTINCT carrid
+    FROM ydesarrollo1
+      INTO TABLE it_carrid.
+
+  REFRESH g_lista.
+  g_name = 'P_LISTA'.
+
+  LOOP AT it_carrid INTO wa_carrid .
+    "WRITE: / wa_carrid-carrid.
+    lv_contador = lv_contador + 1
+    g_value-key = lv_contador. " = sy-tabix no funcionó
+    g_value-text = wa_carrid-carrid.
+    APPEND g_value TO g_lista.
+  ENDLOOP.
+
+  CLEAR lv_contador.
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id              = g_name
+      values          = g_lista
+    EXCEPTIONS
+      id_illegal_name = 1
+      OTHERS          = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+  "REFRESH g_lista.
+ENDFORM.                    "create_listbox
+
+FORM get_item_selected.
+    CALL FUNCTION 'VRM_GET_VALUES'
+    EXPORTING
+      id           = g_name
+    IMPORTING
+      values       = g_lista
+    EXCEPTIONS
+      id_not_found = 1
+      OTHERS       = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+  CLEAR g_value.
+  READ TABLE g_lista INTO g_value WITH KEY key = p_lista. "p_lista has not any content
+  p_carrid = g_value-text.
+ENDFORM.

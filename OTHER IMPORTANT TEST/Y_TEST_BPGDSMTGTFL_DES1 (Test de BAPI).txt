@@ -1,0 +1,56 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_BPGDSMTGTDTL_DES1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_bpgdsmtgtdtl_des1.
+
+DATA: gv_matdoc TYPE  bapi2017_gm_head_02-mat_doc,
+      gv_docyear TYPE bapi2017_gm_head_02-doc_year,
+
+      wa_dochead LIKE bapi2017_gm_head_02,
+
+      it_items TYPE STANDARD TABLE OF bapi2017_gm_item_show,
+      it_ret TYPE STANDARD TABLE OF bapiret2.
+
+gv_matdoc = '8000000000'. "Tabla MSEG, MKPF
+gv_docyear = '2018'.
+
+*SELECT *
+*   FROM bseg
+*    INTO wa_dochead
+*      WHERE belnr EQ '0400000000'.
+*
+*  WRITE: wa_dochead-username.
+
+
+CALL FUNCTION 'BAPI_GOODSMVT_GETDETAIL'
+  EXPORTING
+    materialdocument = gv_matdoc
+    matdocumentyear  = gv_docyear
+  IMPORTING
+    goodsmvt_header  = wa_dochead
+  TABLES
+    goodsmvt_items   = it_items
+    return           = it_ret.
+
+
+IF wa_dochead IS NOT INITIAL.
+  CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
+*   EXPORTING
+*     WAIT          =
+*   IMPORTING
+*     RETURN        =
+            .
+  WRITE: 'El usuario es', wa_dochead-username.
+
+ELSE.
+  CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'
+*   IMPORTING
+*     RETURN        =
+  .
+  WRITE: 'wa_dochead vacía'.
+ENDIF.

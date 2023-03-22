@@ -1,0 +1,177 @@
+*&---------------------------------------------------------------------*
+*&  Include           YALV_OO_CLS1
+*&---------------------------------------------------------------------*
+CLASS cls_alv_oo DEFINITION.
+
+  PUBLIC SECTION.
+
+    METHODS: get_data,
+    show_alv,
+    set_fieldcat,
+    exclude_btns.
+
+ENDCLASS.                    "cls_alv_oo DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_alv_oo IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_alv_oo IMPLEMENTATION.
+
+  METHOD: get_data.
+
+    FIELD-SYMBOLS <fs_mara> TYPE ty_mara.
+
+    SELECT matnr ersda meins mtart FROM mara
+      INTO TABLE it_mara
+      WHERE matnr IN s_matnr.
+
+    LOOP AT it_mara ASSIGNING <fs_mara>.
+      <fs_mara>-pic = '@OK@'.
+    ENDLOOP.
+
+  ENDMETHOD.                    "get_data
+
+  METHOD: set_fieldcat.
+
+    DATA wa_fcat TYPE lvc_s_fcat. "<- Revisar esta estructura para saber que más propiedades se le pueden agregar a los campos
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'SEL'. "Campo que se agregó en el tipo it para seleccionar.
+    "Dentro del catálogo no importa el orden en que se declaren los campos respecto a como se declararon en la it.
+    "El orden afecta la visualización.
+    wa_fcat-coltext = 'Seleccionar'.
+    wa_fcat-checkbox = 'X'.
+    wa_fcat-edit = 'X'.
+    wa_fcat-outputlen = 5.
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'PIC'. "Campo que se agregó en el tipo it para añadir iconos
+    wa_fcat-coltext = 'Imagen'.
+    wa_fcat-icon = 'X'.
+    wa_fcat-edit = 'X'.
+    wa_fcat-outputlen = 5.
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'MATNR'. "Nombre del campo en IT.
+    wa_fcat-outputlen = 10.
+*    wa_fcat-coltext = 'Material',
+    wa_fcat-ref_table = 'MARA'.
+    wa_fcat-ref_field = 'MATNR'.
+    wa_fcat-hotspot = 'X'. "Propiedad para que los valores de este campo sean links
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'ERSDA'.
+    wa_fcat-ref_table = 'MARA'.
+    wa_fcat-ref_field = 'ERSDA'.
+    wa_fcat-outputlen = 10.
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'MEINS'.
+    wa_fcat-ref_table = 'MARA'.
+    wa_fcat-ref_field = 'MEINS'.
+    wa_fcat-outputlen = 10.
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'MTART'.
+    wa_fcat-ref_table = 'MARA'.
+    wa_fcat-ref_field = 'MTART'.
+    wa_fcat-outputlen = 10.
+    APPEND wa_fcat TO it_fcat.
+
+    CLEAR wa_fcat.
+    wa_fcat-fieldname = 'DUMMY'. "Campo para que se pueda ingresar texto libre en una celda del ALV
+    "PARECE que con este campo se agregan los recuadros de click (no son los checkbox) más a la izquierda del ALV.
+    wa_fcat-coltext = 'Agregar texto'.
+    wa_fcat-edit = 'X'.
+    wa_fcat-outputlen = 5.
+    APPEND wa_fcat TO it_fcat.
+
+  ENDMETHOD.                    "set_fieldcat
+
+  method exclude_btns.
+    data wa_exclude type ui_func.
+    refresh it_excluding.
+
+    wa_exclude = cl_gui_alv_grid=>MC_FC_GRAPH.
+    APPEND wa_exclude TO it_excluding.
+
+    wa_exclude = cl_gui_alv_grid=>MC_FC_LOC_UNDO.
+    APPEND wa_exclude TO it_excluding.
+
+    wa_exclude = cl_gui_alv_grid=>MC_FC_PRINT.
+    APPEND wa_exclude TO it_excluding.
+  ENDMETHOD.
+
+  METHOD show_alv.
+
+    DATA vl_layout TYPE lvc_s_layo.
+    vl_layout-zebra = 'X'.
+
+    IF vg_container IS NOT BOUND. "Si contenedor no ha sido inicializado...
+
+      CREATE OBJECT vg_container
+        EXPORTING
+          container_name = 'CC_ALV'.
+
+      CREATE OBJECT obj_alv_grid
+        EXPORTING
+          i_parent = vg_container.
+
+      CALL METHOD set_fieldcat.
+      CALL METHOD exclude_btns.
+
+      CREATE OBJECT obj_eventos.
+      SET HANDLER obj_eventos->handle_double_click FOR obj_alv_grid.
+      SET HANDLER obj_eventos->handle_hotspot_click FOR obj_alv_grid.
+      SET HANDLER obj_eventos->handle_data_changed_finished FOR obj_alv_grid.
+      SET HANDLER obj_eventos->handle_toolbar FOR obj_alv_grid.
+      SET HANDLER obj_eventos->handle_user_command FOR obj_alv_grid.
+
+      CALL METHOD obj_alv_grid->register_edit_event
+        EXPORTING
+          i_event_id = cl_gui_alv_grid=>mc_evt_modified.
+
+      CALL METHOD obj_alv_grid->set_table_for_first_display
+          EXPORTING
+*            i_buffer_active               =
+*            i_bypassing_buffer            =
+*            i_consistency_check           =
+*            i_structure_name              =
+*            is_variant                    =
+*            i_save                        =
+*            i_default                     = 'X'
+            is_layout                     = vl_layout
+*            is_print                      =
+*            it_special_groups             =
+            it_toolbar_excluding          = it_excluding
+*            it_hyperlink                  =
+*            it_alv_graphics               =
+*            it_except_qinfo               =
+*            ir_salv_adapter               =
+        CHANGING
+          it_outtab                     = it_mara
+          it_fieldcatalog               = it_fcat
+*            it_sort                       =
+*            it_filter                     =
+*          EXCEPTIONS
+*            invalid_parameter_combination = 1
+*            program_error                 = 2
+*            too_many_lines                = 3
+*            others                        = 4
+        .
+      IF sy-subrc <> 0.
+*         MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+*                    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+      ENDIF.
+    ELSE.
+      CALL METHOD obj_alv_grid->refresh_table_display. "...basta con un refresh
+    ENDIF.
+  ENDMETHOD.                    "show_alv
+ENDCLASS.                    "cls_alv_oo IMPLEMENTATION

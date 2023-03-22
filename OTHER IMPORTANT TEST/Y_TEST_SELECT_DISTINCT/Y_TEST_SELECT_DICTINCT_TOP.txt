@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*&  Include           Y_TEST_SELECT_DISTINCT_TOP
+*&---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_carrid,
+        carrid TYPE ydesarrollo1-carrid,
+       END OF ty_carrid.
+
+DATA: it_carrid TYPE STANDARD TABLE OF ty_carrid,
+      wa_carrid TYPE ty_carrid,
+      lv_contador TYPE i.
+
+TYPE-POOLS: vrm .
+
+DATA: g_lista  TYPE vrm_values,
+      g_name   TYPE vrm_id,
+      g_value  LIKE LINE OF g_lista.
+
+DATA: it_ydesarrollo1 TYPE STANDARD TABLE OF ydesarrollo1.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+PARAMETERS p_lista TYPE c LENGTH 10 AS LISTBOX VISIBLE LENGTH 500.
+PARAMETERS p_carrid(10) TYPE c.
+SELECTION-SCREEN END OF BLOCK b1.

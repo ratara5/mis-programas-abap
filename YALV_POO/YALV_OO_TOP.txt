@@ -1,0 +1,50 @@
+*&---------------------------------------------------------------------*
+*&  Include           YALV_OO_TOP
+*&---------------------------------------------------------------------*
+TABLES: mara.
+
+*
+TYPES: BEGIN OF ty_mara,
+      matnr TYPE matnr,
+      ersda TYPE ersda,
+      meins TYPE meins,
+      mtart TYPE mtart,
+      sel TYPE char1, "Estos campos deben colocarse al final para no afectar la consulta a la TBD
+      pic TYPE icon_text,
+      dummy type char100,
+      END OF ty_mara.
+
+*Pantalla de selección Esta pantalla es diferente a la de la Dynpro donde se muestra el ALV
+SELECTION-SCREEN BEGIN OF BLOCK b1.
+SELECT-OPTIONS  s_matnr FOR mara-matnr.
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+"Variables de la Dynpro 0100
+DATA: ok_code TYPE sy-ucomm.
+
+"Variables para el ALV
+DATA: it_mara TYPE STANDARD TABLE OF ty_mara, "Esta tabla contiene la info a mostrar
+      it_fcat TYPE STANDARD TABLE OF lvc_s_fcat, "Esta tabla contiene todas las columnas que
+      "se van a mostrar en el ALV con us propiedades como el título o el tamaño
+      vg_container TYPE REF TO cl_gui_custom_container, "A este objeto se le asignará el nombre
+      "para el custom container creado en Screen Painter
+      obj_alv_grid TYPE REF TO cl_gui_alv_grid, "Instancia para poder acceder a los métodos de la
+"clase esándar con la cual vamos a mostrar el ALV
+      it_excluding type ui_functions.
+
+
+"Clase interna
+CLASS cls_alv_oo DEFINITION DEFERRED. "Declaración de clase interna, cuya definición e implementación se
+"harán después.
+DATA obj_alv_oo TYPE REF TO cls_alv_oo. "Declaración del objeto instancia de la clase mencionada.
+
+
+CLASS cls_eventos DEFINITION DEFERRED.
+DATA obj_eventos TYPE REF TO cls_eventos.
+
+
+DATA : t_intab2 TYPE STANDARD TABLE OF ty_mara, "Tabla auxiliar para agregar registros a borrar. ?LIKE TABLE OF TABLA_Z WITH HEADER LINE
+   w_intab1 LIKE LINE OF t_intab1.
+DATA: i_index_rows      TYPE lvc_t_row,
+      i_selected_row    LIKE lvc_s_row. 

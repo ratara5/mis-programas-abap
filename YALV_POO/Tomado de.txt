@@ -1,0 +1,10 @@
+Curso ALV OO
+https://www.youtube.com/watch?v=LzJO5XMcrKQ&list=PLf02an--j1Bfr4YGhgpTEqaN9E5jYwJKO
+
+PASOS
+1. Dynpro con Custom Control
+2. Pantalla de Selección
+3. Tabla interna con los datos a mostrar
+4. Fielcat (Catálogo de campos)
+5. Implementar clase CL_GUI_ALV_GRID
+6. Unir los pasos anteriores

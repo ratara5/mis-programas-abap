@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*& Report  YALV_OO
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT yalv_oo.
+
+INCLUDE yalv_oo_top.
+INCLUDE yalv_oo_pbo.
+INCLUDE yalv_oo_pai.
+INCLUDE yalv_oo_cls2. "Clase nueva creada para manejar los eventos
+INCLUDE yalv_oo_cls1. "Clase interna para el código de la lógica del programa
+
+START-OF-SELECTION.
+  CREATE OBJECT obj_alv_oo.
+
+  CALL METHOD obj_alv_oo->get_data.
+  CALL METHOD obj_alv_oo->show_alv.
+
+  CALL SCREEN 0100.

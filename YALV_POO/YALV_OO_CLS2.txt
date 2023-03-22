@@ -1,0 +1,150 @@
+*&---------------------------------------------------------------------*
+*&  Include           YALV_OO_CLS2
+*&---------------------------------------------------------------------*
+CLASS cls_eventos DEFINITION.
+
+  PUBLIC SECTION.
+    METHODS: handle_double_click FOR EVENT double_click OF cl_gui_alv_grid "Otra forma más ordenada es hacer otra clase que contenga
+    "solamente los eventos
+    IMPORTING
+      e_row
+      e_column
+      es_row_no,
+
+    handle_hotspot_click FOR EVENT hotspot_click OF cl_gui_alv_grid "Otra forma más ordenada es hacer otra clase que contenga
+    "solamente los eventos
+      IMPORTING
+         e_row_id
+         e_column_id
+         es_row_no,
+
+     handle_data_changed_finished FOR EVENT data_changed_finished OF cl_gui_alv_grid
+      IMPORTING
+        e_modified
+        et_good_cells, "Esta es una tabla que contiene todas las celdas que fueron modificadas
+
+     handle_toolbar FOR EVENT toolbar OF cl_gui_alv_grid
+      IMPORTING e_object
+               e_interactive,
+
+     handle_user_command FOR EVENT user_command OF cl_gui_alv_grid
+      IMPORTING e_ucomm.
+
+ENDCLASS.                    "cls_eventos DEFINITION
+
+*----------------------------------------------------------------------*
+*       CLASS cls_eventos IMPLEMENTATION
+*----------------------------------------------------------------------*
+*
+*----------------------------------------------------------------------*
+CLASS cls_eventos IMPLEMENTATION.
+
+  METHOD handle_double_click.
+    MESSAGE e_row TYPE 'I'. "Has hecho clic en la fila e_row
+  ENDMETHOD.                    "handle_double_click
+
+  METHOD handle_hotspot_click.
+    FIELD-SYMBOLS <fs_mara> TYPE ty_mara.
+    READ TABLE it_mara ASSIGNING <fs_mara> INDEX e_row_id.
+    IF sy-subrc = 0.
+      MESSAGE <fs_mara>-matnr TYPE 'I'.
+    ENDIF.
+  ENDMETHOD.                    "handle_hotspot_click
+
+  METHOD handle_data_changed_finished.
+    DATA: vl_message TYPE string.
+    FIELD-SYMBOLS: <fs_et_goods> LIKE LINE OF et_good_cells.
+
+    IF e_modified = abap_true.
+      CLEAR vl_message.
+
+      READ TABLE et_good_cells ASSIGNING <fs_et_goods> INDEX 1. "Se podría hacer un loop sobre toda la tabla para ver los cambios de
+      "todas las filas que hayan sido modificadas
+      IF sy-subrc = 0.
+        vl_message = <fs_et_goods>-row_id.
+        CONCATENATE vl_message <fs_et_goods>-fieldname INTO vl_message SEPARATED BY ' '. "SEPARATED BY qué?. Dice qué campo (columna)
+        "ha sido modificada
+        MESSAGE vl_message TYPE 'I'.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.                    "handle_data_changed_finished
+
+  METHOD handle_toolbar.
+    DATA: wa_button TYPE stb_button. "Este tipo contiene todos los campos para atributos que pueden
+    "definírsele a nuestros botones.
+
+    wa_button-function = 'NOTA'. "id que guarda la variable OK_CODE cuando se presione el botón, es un código de función
+    wa_button-icon = icon_display_note. "ícono
+    "wa_button-text = 'Nota (text)'. "Texto descriptivo al lado
+    wa_button-quickinfo = 'Nota (quickinfo)'. "Texto cuando nos posicionemos sobre el botón
+    wa_button-disabled = space. "Para habilitar o deshabilitar el botón
+
+    APPEND wa_button TO e_object->mt_toolbar.
+
+    wa_button-function = 'BORRAR'. "id que guarda la variable OK_CODE cuando se presione el botón, es un código de función
+    wa_button-icon = icon_delete. "ícono
+    "wa_button-text = 'Nota (text)'. "Texto descriptivo al lado
+    wa_button-quickinfo = 'Borrar (quickinfo)'. "Texto cuando nos posicionemos sobre el botón
+    wa_button-disabled = space. "Para habilitar o deshabilitar el botón
+
+    APPEND wa_button TO e_object->mt_toolbar.
+  ENDMETHOD.                    "handle_toolbar
+
+  METHOD handle_user_command.
+
+
+    CASE e_ucomm.
+      WHEN 'NOTA'.
+        MESSAGE 'Notas rápidas' TYPE 'I'.
+      WHEN 'BORRAR'.
+
+        DATA : i_lines TYPE i.
+        CLEAR : t_intab2.
+        REFRESH : t_intab2.
+
+*       Capturar Indice de Fila Marcada
+        CALL METHOD obj_alv_grid->get_selected_rows
+          IMPORTING
+            et_index_rows = i_index_rows.
+
+        DESCRIBE TABLE i_index_rows LINES i_lines.
+
+        IF i_lines = 0.
+          MESSAGE 'Para Eliminar...Debe Marcar un Registro.' TYPE 'I'. "MESSAGE i000 WITH 'Para Eliminar...Debe Marcar un Registro.'.
+          EXIT.
+        ENDIF.
+
+*       Leer Filas Marcadas en TI para Borrado
+        LOOP AT i_index_rows INTO i_selected_row.
+          READ TABLE it_mara INDEX i_selected_row-index INTO w_intab1.
+          APPEND w_intab1 TO t_intab2.
+        ENDLOOP.
+
+*       Borrar Las Filas Marcadas en TI de Borrado
+        LOOP AT t_intab2 INTO w_intab1.
+          DELETE it_mara WHERE matnr EQ w_intab1-matnr.
+          "DELETE FROM MARA WHERE MATNR = w_intab1-MATNR "No se requiere borrado de la TBD
+        ENDLOOP.
+        COMMIT WORK.
+
+        "Refrescar info de la tabla
+        CALL METHOD obj_alv_grid->set_ready_for_input
+          EXPORTING
+            i_ready_for_input = 0.
+
+        CALL METHOD obj_alv_grid->refresh_table_display.
+
+        IF sy-subrc = 0.
+          MESSAGE 'Proceso de Borrado Ok.' TYPE 'I'. "MESSAGE i000 WITH 'Proceso de Borrado Ok.'.
+        ELSE.
+          MESSAGE 'Falló el Proceso de Borrado' TYPE 'I'.
+        ENDIF.
+
+      WHEN OTHERS.
+
+    ENDCASE.
+
+  ENDMETHOD.                    "handle_user_command
+
+ENDCLASS.                    "cls_eventos IMPLEMENTATION
