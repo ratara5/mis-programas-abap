@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report  ZMMR_ENT_SERVICIOS
+*&
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------&
+*&                       Información General                    "¡D!"  &
+*&---------------------------------------------------------------------&
+*& Modulo       : MM                                                   &
+*& Programa     : ZMMR_ENT_SERVICIOS                                   &
+*& Tipo Obj.    : Reporte                                              &
+*& Fecha        : 27/03/2023                                           &
+*& Requerimiento: Hoja de entrada varias posiciones - 158873           &
+*& Descripción  : Programa para el cargue masivo en la transaccion     &
+*&                ML81N.                                               &
+*&---------------------------------------------------------------------&
+*& Ordenes de transporte                                               &
+*&---------------------------------------------------------------------&
+*&      27/03/2023      |      SEDK924771      | José Daniel Martínez  &
+*&---------------------------------------------------------------------&
+REPORT zmmr_ent_servicios.
+
+INCLUDE zmmr_ent_servicios_top.        ".Declaración de variables
+INCLUDE zmmr_ent_servicios_f01.        ".Rutinas carga Excel
+INCLUDE zmmr_ent_servicios_f02.        ".Rutinas ML81N
+
+INITIALIZATION.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_ruta.
+  CALL FUNCTION 'KD_GET_FILENAME_ON_F4'    ".Función para obtener el libro excel y su ruta
+    EXPORTING
+      field_name    = p_ruta
+    CHANGING
+      file_name     = p_ruta
+    EXCEPTIONS
+      mask_too_long = 1
+      OTHERS        = 2.
+
+START-OF-SELECTION.
+  PERFORM inicia_proceso.                  ".Rutina para trasladar información desde libro excel hacia tabla interna
+  PERFORM apply_bapi.                      ".Rutina para crear hojas de aceptación de servicios usando BAPI

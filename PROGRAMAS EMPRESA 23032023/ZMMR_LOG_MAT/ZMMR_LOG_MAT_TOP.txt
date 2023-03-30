@@ -1,0 +1,35 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_LOG_MAT_TOP
+*&---------------------------------------------------------------------*
+
+*&---------------------------------------------------------------------*
+*&**************        DECLARACIÓN DE TABLAS         ******************
+*&---------------------------------------------------------------------*
+
+DATA: lt_log_mat     TYPE STANDARD TABLE OF zmmt_log_mat,
+      lt_log_mat_aux TYPE STANDARD TABLE OF zmmt_log_mat,
+      it_info_mat    TYPE STANDARD TABLE OF zmmst_mat_dec.
+
+*&---------------------------------------------------------------------*
+*&***************    DECLARACIÓN DE ESTRUCUTRAS        *****************
+*&---------------------------------------------------------------------*
+
+DATA: lst_log_mat  TYPE zmmt_log_mat,
+      lst_info_mat TYPE zmmst_mat_dec.
+
+*&---------------------------------------------------------------------*
+*&*******************       CLASES      ********************************
+*&---------------------------------------------------------------------*
+
+CLASS lcl_event_manager DEFINITION DEFERRED.    ".Clase manejo de eventos
+
+*&---------------------------------------------------------------------*
+*&*******************       OBJETOS      *******************************
+*&---------------------------------------------------------------------*
+
+DATA: lo_table             TYPE REF TO cl_salv_table,       ".instancia de la clase display alv
+      r_handler_salv_table TYPE REF TO lcl_event_manager,   ".Handler eventos
+      lo_selections        TYPE REF TO cl_salv_selections,  ".instancia de la clase selección de celdas
+      lo_api_client        TYPE REF TO zmmcl_api_client.    ".instancia de la clase selección de celdas
+
+CREATE OBJECT lo_api_client. ".Crear instancia de la clase global ZMMCLS_API_CLIENT

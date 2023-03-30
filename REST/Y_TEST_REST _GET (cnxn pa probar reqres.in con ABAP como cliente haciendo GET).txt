@@ -1,0 +1,148 @@
+*&---------------------------------------------------------------------*
+*& Report  Y_TEST_REST_GET
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT y_test_rest_get.
+
+
+TYPES: BEGIN OF ty_final,        ".Tipos para la conversión del JSON (GET) en tabla interna
+         id           TYPE string,
+         email        TYPE string,
+         first_name   TYPE string,
+         last_name    TYPE string,
+       END OF ty_final.
+
+DATA: lr_data          TYPE REF TO data, ".Declaración de estructuras y tablas internas para la conversión del JSON (GET) en tabla interna
+      ls_final         TYPE ty_final,
+      lt_final         TYPE TABLE OF ty_final.
+
+FIELD-SYMBOLS:
+  <data>        TYPE data,         ".Declaración de símbolos de campo para la conversión del JSON (GET) en tabla interna
+  <data_json>     TYPE any, "Esta es la llave 'data' en el JSON, en algunos otros servicios es 'result'
+  <structure>   TYPE any,
+  <table>       TYPE ANY TABLE,
+  <field>       TYPE any,
+  <field_value> TYPE data.
+
+
+DATA: lo_http_client TYPE REF TO if_http_client,
+      lo_rest_client TYPE REF TO cl_rest_http_client,
+      lo_rest_entity TYPE REF TO if_rest_entity,
+      lv_return_code TYPE i,
+      lv_json_response TYPE string,
+      lv_url  TYPE string,
+      lv_path TYPE string.
+
+"Crear http client
+lv_url = 'https://reqres.in/'.
+
+cl_http_client=>create_by_url(
+     EXPORTING
+       url                = lv_url
+     IMPORTING
+       client             = lo_http_client
+     EXCEPTIONS
+       argument_not_found = 1
+       plugin_not_active  = 2
+       internal_error     = 3
+       OTHERS             = 4 ).
+
+IF sy-subrc EQ 0.
+
+ENDIF.
+
+"lo_http_client->authenticate( username = '' password = '' ).
+lo_http_client->propertytype_accept_cookie = if_http_client=>co_enabled.
+lo_http_client->request->set_header_field( name  = if_http_form_fields_sap=>sap_client value = '100' ).
+
+
+"Crear rest client
+CREATE OBJECT lo_rest_client
+  EXPORTING
+    io_http_client = lo_http_client.
+
+
+"Hacer GET
+lv_path = '/api/users?page=2'.
+lo_rest_client->if_rest_client~set_request_header(
+EXPORTING
+iv_name  = if_http_header_fields_sap=>request_uri
+iv_value = lv_path ).
+
+lo_rest_client->if_rest_resource~get( ).
+lv_return_code = lo_rest_client->if_rest_client~get_status( ).
+lo_rest_entity = lo_rest_client->if_rest_client~get_response_entity( ).
+
+
+"Construir tabla interna a partir JSON
+IF lv_return_code = 200.
+
+  "on success, i.e. lv_return_code=200, READ DATA from rest entity
+  lv_json_response = lo_rest_entity->get_string_data( ).
+  "WRITE: lv_json_response. <-- Basic read of json
+
+  CALL METHOD /ui2/cl_json=>deserialize
+    EXPORTING
+      json         = lv_json_response
+      pretty_name  = /ui2/cl_json=>pretty_mode-user
+      assoc_arrays = abap_true
+    CHANGING
+      data         = lr_data.
+
+  IF lr_data IS BOUND.
+
+    ASSIGN lr_data->* TO <data>.
+    ASSIGN COMPONENT `DATA` OF STRUCTURE <data> TO <data_json>.
+    ASSIGN <data_json>->* TO <table>.
+
+    LOOP AT <table> ASSIGNING <structure>.
+
+      ASSIGN <structure>->* TO <data>.
+
+      ASSIGN COMPONENT `ID` OF STRUCTURE <data> TO <field>.
+      IF <field> IS ASSIGNED.
+        lr_data = <field>.
+        ASSIGN lr_data->* TO <field_value>.
+        ls_final-id = <field_value>.
+      ENDIF.
+      UNASSIGN: <field>, <field_value>.
+
+      ASSIGN COMPONENT `EMAIL` OF STRUCTURE <data> TO <field>.
+      IF <field> IS ASSIGNED.
+        lr_data = <field>.
+        ASSIGN lr_data->* TO <field_value>.
+        ls_final-email = <field_value>.
+      ENDIF.
+      UNASSIGN: <field>, <field_value>.
+
+      ASSIGN COMPONENT `FIRST_NAME` OF STRUCTURE <data> TO <field>.
+      IF <field> IS ASSIGNED.
+        lr_data = <field>.
+        ASSIGN lr_data->* TO <field_value>.
+        ls_final-first_name = <field_value>.
+      ENDIF.
+      UNASSIGN: <field>, <field_value>.
+
+      ASSIGN COMPONENT `LAST_NAME` OF STRUCTURE <data> TO <field>.
+      IF <field> IS ASSIGNED.
+        lr_data = <field>.
+        ASSIGN lr_data->* TO <field_value>.
+        ls_final-last_name = <field_value>.
+      ENDIF.
+      UNASSIGN: <field>, <field_value>.
+
+      APPEND ls_final TO lt_final.
+      CLEAR ls_final.
+
+    ENDLOOP.
+
+  ENDIF.
+
+  cl_demo_output=>write_data( lt_final ).
+  cl_demo_output=>display( ).
+
+ENDIF.

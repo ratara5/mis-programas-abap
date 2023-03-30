@@ -1,0 +1,53 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_ENT_SERVICIOS_TOP
+*&---------------------------------------------------------------------*
+
+*&---------------------------------------------------------------------*
+*&*************************         TYPES       ************************
+*&---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_structure,
+         field1  TYPE string,
+         field2  TYPE string,
+         field3  TYPE string,
+         field4  TYPE string,
+         field5  TYPE string,
+         field6  TYPE string,
+         field7  TYPE string,
+         field8  TYPE string,
+         field9  TYPE string,
+         field10 TYPE string,
+         field11 TYPE string,
+         field12 TYPE string,
+       END OF ty_structure.
+
+*&---------------------------------------------------------------------*
+*&*********************      INTERNAL TABLES       *********************
+*&---------------------------------------------------------------------*
+DATA: it_data       TYPE STANDARD TABLE OF ty_structure,
+      it_excel_data TYPE STANDARD TABLE OF alsmex_tabline.
+
+*&---------------------------------------------------------------------*
+*&***********************      STRUCTURES        ***********************
+*&---------------------------------------------------------------------*
+DATA: lst_data TYPE  ty_structure.
+
+*&---------------------------------------------------------------------*
+*&***********************      PARAMETERS        ***********************
+*&---------------------------------------------------------------------*
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+PARAMETERS: p_ruta TYPE rlgrap-filename OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b1.
+
+****************************************************************************
+
+DATA:
+  lv_packno TYPE ekpo-packno,
+
+  t_esll      LIKE esll OCCURS 0 WITH HEADER LINE,
+  wa_cabecera LIKE bapiessrc,
+  lv_pedido   LIKE bapiessr-sheet_no,
+  t_return    TYPE TABLE OF bapiret2 WITH HEADER LINE,
+  t_return2   TYPE TABLE OF bapiret2 WITH HEADER LINE,
+  wa_return2  LIKE LINE OF t_return2,
+  t_items     TYPE TABLE OF bapiesllc WITH HEADER LINE,
+  wa_items    TYPE bapiesllc.

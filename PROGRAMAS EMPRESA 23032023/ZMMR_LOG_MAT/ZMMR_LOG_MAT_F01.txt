@@ -1,0 +1,108 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_LOG_MAT_F01
+*&---------------------------------------------------------------------*
+
+FORM get_data.
+
+  SELECT * "matnr mtart werks texto usuario fecha hora descrip status
+    FROM zmmt_log_mat
+    INTO TABLE lt_log_mat.
+
+  IF lt_log_mat IS NOT INITIAL.
+
+  ENDIF.
+
+ENDFORM.                    "get_data
+
+*&---------------------------------------------------------------------*
+*&      Form  imprimir_alv
+*&---------------------------------------------------------------------*
+FORM imprimir_alv.
+
+  CONSTANTS: lc_status_gui TYPE sypfkey VALUE 'PF_STATUS'.               ". Status gui
+
+  cl_salv_table=>factory(                                                ". Factory del alv
+             IMPORTING
+               r_salv_table = lo_table
+             CHANGING
+               t_table      = lt_log_mat ).
+
+  DATA: lr_columns TYPE REF TO cl_salv_columns_table,                     " Instancia columnas
+        lr_column  TYPE REF TO cl_salv_column_table.
+
+  lr_columns = lo_table->get_columns( ).                                  ". Optimiza tamaño columnas
+  lr_columns->set_optimize('X').
+
+  ""STATUS BAR----------------------------------------------------------
+
+  lo_table->set_screen_status( pfstatus = lc_status_gui
+                                  report = sy-repid
+                                  set_functions = lo_table->c_functions_all ).
+
+*  ""Metodos & eventos para la selección de celdas-----------------------
+
+  lo_selections = lo_table->get_selections( ).
+
+  CALL METHOD lo_selections->set_selection_mode
+    EXPORTING
+      value = if_salv_c_selection_mode=>multiple.
+
+  lo_selections->set_selection_mode( if_salv_c_selection_mode=>row_column ).
+  CREATE OBJECT r_handler_salv_table.
+
+  CALL METHOD lo_table->display.
+
+ENDFORM.                    "imprimir_alv
+
+FORM job.
+
+  SELECT *
+    FROM zmmt_log_mat
+    INTO TABLE lt_log_mat
+   WHERE status EQ space.
+
+  IF sy-subrc EQ 0.
+
+    LOOP AT lt_log_mat ASSIGNING FIELD-SYMBOL(<fs_log_mat>).
+      lst_info_mat-matnr = <fs_log_mat>-matnr.
+      lst_info_mat-maktx = <fs_log_mat>-texto.
+      APPEND lst_info_mat TO it_info_mat.
+      <fs_log_mat>-status = abap_true.
+    ENDLOOP.
+
+    CALL METHOD lo_api_client->create_json ".Se crea el JSON y se consume la API
+      IMPORTING
+        status   = DATA(lv_status)
+      CHANGING
+        it_input = it_info_mat.
+
+    IF lv_status IS NOT INITIAL.
+      MODIFY zmmt_log_mat FROM TABLE lt_log_mat.
+    ENDIF.
+
+  ENDIF.
+
+ENDFORM.
+
+FORM delete.                  ".Eliminar registros de la tabla ZMMT_LOG_MAT que ya han sido enviados y cuya fecha de antigüedad es mayor a 10 días.
+
+  DATA: lv_newdate TYPE sy-datum.
+
+  CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'    ".Función para añadir periodos a una fecha específica.
+    EXPORTING
+      date      = sy-datum
+      days      = 10
+      months    = 00
+      signum    = '-'
+      years     = 00
+    IMPORTING
+      calc_date = lv_newdate.
+
+  DELETE FROM zmmt_log_mat WHERE status EQ 'X' AND fecha < lv_newdate.    ".Operación sobre la tabla de base de datos.
+  IF sy-subrc EQ 0.
+    COMMIT WORK.    ".Exitosa.
+  ELSE.
+    ROLLBACK WORK.  ".Fallida.
+  ENDIF.
+
+ENDFORM.

@@ -1,0 +1,97 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_LOG_MAT_CLS
+*&---------------------------------------------------------------------*
+
+*INCLUDE <icon>.
+
+CLASS lcl_event_manager DEFINITION.                               ".Clase manejo de eventos
+
+  PUBLIC SECTION.
+
+    METHODS:
+      constructor,                                               ".Método construstor
+      on_link_click FOR EVENT added_function OF cl_salv_events   ".Método selección botón status gui
+        IMPORTING e_salv_function.
+
+ENDCLASS.                                  "lcl_event_manager DEFINITION
+
+*&---------------------------------------------------------------------&
+*& CLASS lcl_event_manager IMPLEMENTATION                              &
+*&---------------------------------------------------------------------&
+
+CLASS lcl_event_manager IMPLEMENTATION.
+
+*&---------------------------------------------------------------------&
+*& Método Constructor de la clase                                      &
+*&---------------------------------------------------------------------&
+  METHOD constructor.
+
+    DATA: lo_events TYPE REF TO cl_salv_events_table.
+
+    "CAPTURA DE EVENTOS
+    lo_events = lo_table->get_event( ).
+
+    SET HANDLER on_link_click FOR lo_events.
+    SET HANDLER me->on_link_click FOR lo_events.
+
+  ENDMETHOD.                    "on_double_click_cel
+
+*&---------------------------------------------------------------------&
+*& Método on_link_click                                                &
+*&---------------------------------------------------------------------&
+
+  METHOD on_link_click.
+
+    DATA:        lt_rows TYPE salv_t_row.
+    lt_rows = lo_selections->get_selected_rows( ).                    ".Obtener celdas seleccionadas
+
+    CASE e_salv_function.                                             ".Contiene el cod. de funcion del pulsador seleccionado
+
+      WHEN 'PROCESAR'.                                                ".Evento Botón PROCESAR
+        DATA: wa_rows TYPE int4.
+
+        LOOP AT lt_rows INTO wa_rows .                                ".Leer índices de lineas seleccionadas en ALV
+          READ TABLE lt_log_mat INTO lst_log_mat INDEX wa_rows.
+          IF sy-subrc EQ 0 AND lst_log_mat-status IS INITIAL.
+
+            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'               ".Agregar ceros a la izquierda para el material
+              EXPORTING
+                input  = lst_log_mat-matnr
+              IMPORTING
+                output = lst_info_mat-matnr.
+
+            lst_info_mat-maktx = lst_log_mat-texto.
+
+            APPEND lst_info_mat TO it_info_mat.
+            APPEND lst_log_mat TO lt_log_mat_aux.
+
+          ENDIF.
+        ENDLOOP.
+
+        IF it_info_mat IS NOT INITIAL.
+
+          CALL METHOD lo_api_client->create_json                         ".Contruir JSON a partir de tabla interna
+            IMPORTING
+              status   = DATA(lv_status)
+            CHANGING
+              it_input = it_info_mat.
+
+          IF lv_status IS NOT INITIAL AND lt_log_mat_aux IS NOT INITIAL.
+
+            LOOP AT lt_log_mat_aux ASSIGNING FIELD-SYMBOL(<fs_log_mat>).   ".Actualizar Tabla de Log para indicar Reenvío Exitoso
+              <fs_log_mat>-descrip = 'Reenvío Exitoso'.
+              <fs_log_mat>-status = lv_status.
+            ENDLOOP.
+
+            MODIFY zmmt_log_mat FROM TABLE lt_log_mat_aux.
+
+          ENDIF.
+
+        ENDIF.
+
+    ENDCASE.
+
+  ENDMETHOD.                                 "on_link_click
+
+
+ENDCLASS.                    "lcl_event_manager IMPLEMENTATION

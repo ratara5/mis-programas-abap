@@ -1,0 +1,111 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_ENT_SERVICIOS_F02
+*&---------------------------------------------------------------------*
+FORM apply_bapi.
+
+*RECORRER LA TABLA OBTENIDA DEL LIBRO EXCEL
+  LOOP AT it_data ASSIGNING FIELD-SYMBOL(<fs_data>).
+
+    "OBTENER EL PACK_NO DADO EL EBELN
+    SELECT SINGLE packno FROM ekpo INTO lv_packno
+    WHERE ebeln = <fs_data>-field1.
+
+    "LLENAR WORKAREA DE CABECERA Y DETALLE DE HOJA DE ENTRADA DE SERVICIO CON LOS DATOS DE LA FILA (FIELD SYMBOL) DE LA TABLA EXCEL
+    CLEAR wa_cabecera.
+    wa_cabecera-po_number = <fs_data>-field1.
+    wa_cabecera-po_item = <fs_data>-field2.
+    wa_cabecera-begdate = <fs_data>-field6.
+    wa_cabecera-enddate = <fs_data>-field7.
+    wa_cabecera-pckg_no = '1'.
+    wa_cabecera-person_int = <fs_data>-field8.
+    wa_cabecera-person_ext = <fs_data>-field9.
+    wa_cabecera-score_time = ''. "t_pedido-pwwe.
+    wa_cabecera-score_qual = ''. "t_pedido-pwfr.
+    wa_cabecera-short_text = <fs_data>-field5.
+    wa_cabecera-location = ''. "t_pedido-dlort.
+    wa_cabecera-acceptance = 'X'.
+    wa_cabecera-doc_date = sy-datum.
+    wa_cabecera-post_date = sy-datum.
+    "Faltan field3: Código servicio, field4: Cantidad, field10: Código de liberación
+    "fields3y4hacen parte de las lineas de servicio y se determinan para cada servicio; NO hacen parte de la cabecera de aceptación
+    "de servicios (se debe crear el servicio antes de aceptarlo?). (1)
+    "field10 se refiere a CUÁL de los siguientes: FRGGR FRGSX FRGKL FRGZU FRGRL? (2)
+
+    "BUSCAR LOS ITEMS DE SERVICIO (HAY existentes?)
+    REFRESH: t_items, t_esll.
+    CALL FUNCTION 'MS_READ_SERVICES'
+      EXPORTING
+        i_hpackno = lv_packno
+      TABLES
+        t_esll    = t_esll
+      EXCEPTIONS
+        not_found = 1
+        OTHERS    = 2.
+
+    "ESCRIBIR VALORES POR DEFECTO PARA LA TABLA DE ITEMS: EN CASO DE QUE EL PACKAGE(ACEPTACIÓN) ESTUVIERA MARCADO (?)
+    CLEAR t_items.
+    t_items-pckg_no = '1'.
+    t_items-line_no = '1'.
+    t_items-outl_ind = 'X'.
+    t_items-subpckg_no = '2'.
+    t_items-quantity = '1'.
+    APPEND t_items.
+    "LLENAR LA TABLA DE ITEMS t_items CON LOS DATOS DE LA TABLA DE LÍNEAS DE SERVICIO t_esll
+    LOOP AT t_esll WHERE package IS INITIAL.
+      t_items-pckg_no = '2'.
+      t_items-line_no = t_items-line_no + 1.
+      t_items-outl_ind = ''.
+      CLEAR t_items-subpckg_no.
+      t_items-quantity = t_esll-menge.
+      t_items-base_uom = t_esll-meins.
+      t_items-price_unit = t_esll-peinh.
+      IF t_esll-menge GT 0.
+        t_items-gr_price = t_esll-netwr / t_esll-menge.
+      ENDIF.
+      t_items-pln_pckg = t_esll-packno.
+      t_items-pln_line = t_esll-introw.
+      t_items-short_text = t_esll-ktext1.
+      APPEND t_items.
+    ENDLOOP.
+
+    "(1)ESCRIBIR VALORES PARA LA TABLA DE ITEMS CON LOS DATOS DE LA FILA (FIELD SYMBOL) DE LA TABLA EXCEL
+    wa_items-service = <fs_data>-field3.
+    wa_items-quantity = <fs_data>-field4.
+    APPEND wa_items TO t_items.
+
+    "LLAMAR BAPI PARA CREAR HOJA DE ENTRADA DE SERVICIOS
+*   CALL FUNCTION 'BAPI_ENTRYSHEET_CREATE'
+*     EXPORTING
+*       entrysheetheader   = wa_cabecera
+*     IMPORTING
+*       entrysheet         = lv_pedido
+*     TABLES
+*       entrysheetservices = t_items
+*       return             = t_return.
+
+    "(2)UPDATE ... SET ... WHERE .... ".Actualizar <fs_data>-field10 en el campo FRG* de la tabla ESSR donde LBLNI = lv_pedido
+    UPDATE essr SET frggr = <fs_data>-field10   where lblni eq lv_pedido.
+	
+  ENDLOOP.
+
+ENDFORM.
+
+"Divagando...
+
+"REPORT y_1fieldin_bd.
+"DATA: t_essr      LIKE essr OCCURS 0 WITH HEADER LINE,
+      "wa_essr     LIKE LINE OF t_essr,
+      "lv_pedido TYPE essr-lblni.
+"FIELD-SYMBOLS: <fs_essr> LIKE essr.
+
+"SELECT * FROM essr
+  "INTO TABLE t_essr.
+  
+"lv_pedido = '1000000001'.
+
+"LOOP AT t_essr ASSIGNING <fs_essr>.
+"  IF <fs_essr>-lblni EQ lv_pedido.
+"    WRITE: 'Encontrado!'.
+"    UPDATE essr SET frggr = 'NUEVO'   where lblni eq lv_pedido. "Valor=<fs_data>-field10
+"  ENDIF.
+"ENDLOOP.

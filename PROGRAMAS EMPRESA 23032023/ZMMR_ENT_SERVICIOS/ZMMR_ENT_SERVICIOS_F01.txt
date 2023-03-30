@@ -1,0 +1,71 @@
+*&---------------------------------------------------------------------*
+*&  Include           ZMMR_ENT_SERVICIOS_F01
+*&---------------------------------------------------------------------*
+
+FORM inicia_proceso.
+
+  REFRESH it_excel_data.
+
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'         ".Función para trasladar datos de libro excel a tabla interna
+    EXPORTING
+      filename                = p_ruta
+      i_begin_col             = 1
+      i_begin_row             = 3
+      i_end_col               = 12     " 100
+      i_end_row               = 999999
+    TABLES
+      intern                  = it_excel_data
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+
+  IF sy-subrc <> 0.
+     MESSAGE 'Error al cargar la ruta' TYPE 'S' DISPLAY LIKE 'E'.
+  ELSE.
+    PERFORM procesa.
+  ENDIF.
+
+ENDFORM.                    " INICIA_PROCESO
+
+FORM procesa.
+
+  LOOP AT it_excel_data ASSIGNING FIELD-SYMBOL(<fs_excel_data>).  "Conformando tabla interna con campos identificadores de fila, columna y valor
+
+    CASE <fs_excel_data>-col.
+      WHEN '01'.
+        lst_data-field1  = <fs_excel_data>-value. "Número de pedido
+      WHEN '02'.
+        lst_data-field2  = <fs_excel_data>-value. "Número de posición
+      WHEN '03'.
+        lst_data-field3  = <fs_excel_data>-value. "Número de código de servicio
+      WHEN '04'.
+        lst_data-field4  = <fs_excel_data>-value. "Cantidad de servicio
+      WHEN '05'.
+        lst_data-field5  = <fs_excel_data>-value. "Texto breve de cabecera de documento de hoja de entrada
+      WHEN '06'.
+        lst_data-field6  = <fs_excel_data>-value. "Periodo de inicio
+      WHEN '07'.
+        lst_data-field7  = <fs_excel_data>-value. "Periodo final
+      WHEN '08'.
+        lst_data-field8  = <fs_excel_data>-value. "Encargado interno
+      WHEN '09'.
+        lst_data-field9  = <fs_excel_data>-value. "Encargado externo
+      WHEN '10'.
+        lst_data-field10 = <fs_excel_data>-value. "Código de liberación
+      WHEN '11'.
+        lst_data-field11 = <fs_excel_data>-value. "Referencia - opcional
+      WHEN '12'.
+        lst_data-field12 = <fs_excel_data>-value. "Texto de documento - opcional
+      WHEN OTHERS.
+
+    ENDCASE.
+
+    AT END OF row.
+      APPEND lst_data TO it_data. ". Conformando tabla interna con cuerpo similar al de los datos en la hoja de excel
+      CLEAR lst_data.
+    ENDAT.
+
+  ENDLOOP.
+
+ENDFORM.

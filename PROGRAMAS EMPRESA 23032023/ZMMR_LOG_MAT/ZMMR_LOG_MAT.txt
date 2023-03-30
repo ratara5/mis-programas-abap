@@ -1,0 +1,38 @@
+*&---------------------------------------------------------------------*
+*& Report  ZMMR_LOG_MAT
+*&
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------&
+*&                       Información General                    "¡D!"  &
+*&---------------------------------------------------------------------&
+*& Modulo       : MM                                                   &
+*& Programa     : ZMMR_LOG_MAT                                         &
+*& Tipo Obj.    : Reporte                                              &
+*& Fecha        : 27/03/2023                                           &
+*& Requerimiento: HU 186240 MULCOR-SAP-HU034-Interfaces materiales     &
+*& Descripción  : Alv para monitorear los registros de materiales que  &
+*& se envían a la API de WBS con el número y texto breve del material  &
+*& a través de la MM01 y MM02, cuando se crea o modifica un material   &
+*&---------------------------------------------------------------------&
+*& Ordenes de transporte                                               &
+*&---------------------------------------------------------------------&
+*&      24/03/2023      |      SEDK924758      | José Daniel Martínez  &
+*&---------------------------------------------------------------------&
+REPORT zmmr_log_mat.
+
+INCLUDE zmmr_log_mat_top.                 ".Definición de datos globales
+INCLUDE zmmr_log_mat_cls.                 ".Definición de eventos
+INCLUDE zmmr_log_mat_f01.                 ".Subrutinas definídas
+
+*&---------------------------------------------------------------------&
+*& Logica de procesamiento                                             &
+*&---------------------------------------------------------------------&
+
+START-OF-SELECTION.
+  IF sy-batch NE abap_true.     ". Procesamiento data
+    PERFORM get_data.           ". Obtener datos para el ALV
+    PERFORM imprimir_alv.       ". Mostrar el ALV
+  ELSE.
+    PERFORM job.                ". Job para reenvío de registros no exitosos
+    PERFORM delete.             ". Eliminación de registros exitosos anteriores a una fecha
+  ENDIF.
