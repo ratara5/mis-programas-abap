@@ -1,0 +1,137 @@
+FUNCTION z_bapi_pwp_confirmacion. ".Uso de variables dinámicas
+*"----------------------------------------------------------------------
+""Interfase local
+*"  IMPORTING
+*"     VALUE(FECHA_INI) TYPE  DATUM
+*"  EXPORTING
+*"     VALUE(CAB_REPARTOS) TYPE  ZWMMS_PWP_REPARTOS_DES
+*"  TABLES
+*"      REPARTOS_IMP STRUCTURE  ZWMMS_PWP_REPARTOS OPTIONAL
+*"      REPARTOS_EXP STRUCTURE  ZWMMS_PWP_REPARTOS OPTIONAL
+*"----------------------------------------------------------------------
+
+  CLEAR: gs_fecha_ini, gs_fecha_fin, gdt_repartos, gwa_cab_repartos, gdt_vttp,
+           gdt_likp, gdt_lips, gdt_ekpo,
+           gdt_zxmhdc.
+
+  DATA: lv_dias TYPE vtbbewe-atage.
+  DATA: lv_cont TYPE n.
+*  FIELD-SYMBOLS: <fs_plan> TYPE any.
+
+  gs_fecha_proceso = fecha_ini.
+
+  CALL FUNCTION 'FIMA_DAYS_AND_MONTHS_AND_YEARS'
+    EXPORTING
+      i_date_from = gs_fecha_proceso
+      i_date_to   = sy-datum
+    IMPORTING
+      e_days      = lv_dias.
+
+  IF lv_dias <> 0.
+    LOOP AT repartos_imp ASSIGNING FIELD-SYMBOL(<fs_reort_imp>).
+      DO lv_dias TIMES.
+        lv_cont = lv_cont + 1.
+        IF lv_cont <= lv_dias.
+
+          CONCATENATE '<fs_reort_imp>-' 'F' lv_cont '_PLAN' INTO DATA(lv_plan).
+          ASSIGN (lv_plan) TO FIELD-SYMBOL(<fs_plan>).
+          IF <fs_plan> IS ASSIGNED.
+            IF <fs_plan> NE 0.
+              CONCATENATE '<fs_reort_imp>-' 'TEXT_' lv_cont INTO DATA(lv_text).
+              ASSIGN (lv_text) TO FIELD-SYMBOL(<fs_text>).
+              IF <fs_text> IS ASSIGNED.
+                <fs_text> = 'No se puede modificar el regitro por ser una fecha en tiempo pasada'.
+              ENDIF.
+            ENDIF.
+            <fs_plan> = space.
+          ENDIF.
+
+          CONCATENATE '<fs_reort_imp>-' 'F' lv_cont '_CONF' INTO DATA(lv_conf).
+          ASSIGN (lv_conf) TO FIELD-SYMBOL(<fs_conf>).
+          IF <fs_conf> IS ASSIGNED.
+            <fs_conf> = space.
+          ENDIF.
+
+          CONCATENATE '<fs_reort_imp>-' 'F' lv_cont '_EDIT' INTO DATA(lv_edit).
+          ASSIGN (lv_edit) TO FIELD-SYMBOL(<fs_edit>).
+          IF <fs_edit> IS ASSIGNED.
+            <fs_edit> = space.
+          ENDIF.
+
+          CONCATENATE '<fs_reort_imp>-' 'F' lv_cont '_ERROR' INTO DATA(lv_error).
+          ASSIGN (lv_error) TO FIELD-SYMBOL(<fs_error>).
+          IF <fs_error> IS ASSIGNED.
+            <fs_error> = space.
+          ENDIF.
+
+        ENDIF.
+      ENDDO.
+    ENDLOOP.
+  ENDIF.
+
+  gdt_repartos[] = repartos_imp[].
+  DELETE gdt_repartos WHERE bukrs       IS INITIAL AND
+                          lifnr       IS INITIAL AND
+                          ebeln       IS INITIAL.
+
+  IF NOT repartos_imp[] IS INITIAL.
+
+    DATA: gc_me_modul2 TYPE string VALUE 'CRO',
+          gc_me_prog2  TYPE string VALUE 'PWPCONSTANTES'.
+
+    SELECT * INTO TABLE gdt_zxmhdc
+      FROM ztconstantes_4
+      WHERE bukrs     IN gr_bukrs_ct  AND
+            modulo    EQ gc_me_modul2 AND
+            programm  EQ gc_me_prog2.
+
+    IF sy-subrc NE 0.
+      REFRESH gdt_zxmhdc.
+    ENDIF.
+
+    SORT gdt_zxmhdc BY bukrs fieldname.
+
+    PERFORM determinar_fechas.
+
+    LOOP AT repartos_imp ASSIGNING <gwa_repartos>
+                                   WHERE ebeln IS NOT INITIAL.  "++@jlm
+      UNASSIGN <gwa_doc_conv>.
+      APPEND INITIAL LINE TO gdt_doc_conv ASSIGNING <gwa_doc_conv>.
+
+      IF <gwa_doc_conv> IS ASSIGNED.
+        <gwa_doc_conv>-vgbel = <gwa_repartos>-ebeln.
+        <gwa_doc_conv>-vgpos = <gwa_repartos>-ebelp.
+        <gwa_doc_conv>-ebelp = <gwa_repartos>-ebelp.
+      ENDIF.
+
+    ENDLOOP.
+
+    SORT gdt_doc_conv BY vgbel vgpos.
+    DELETE ADJACENT DUPLICATES FROM gdt_doc_conv COMPARING vgbel vgpos.
+
+    PERFORM obtener_aviso_ent.  "++
+
+    SORT gdt_likp BY vbeln.
+    SORT gdt_vttp BY vbeln.
+    SORT gdt_lips BY vbeln posnr.
+
+    PERFORM cant_plan_conf_sem. "++
+    PERFORM cant_confirmados.   "++
+    SORT gdt_cant_confirmados BY ebeln ebelp.
+    SORT gdt_cant_transporte BY ebeln ebelp.
+    SORT gdt_cant_plan_conf_sem BY ebeln ebelp.
+
+    PERFORM analizar_registros. "++
+
+    repartos_exp[] = gdt_repartos[].
+
+  ENDIF.
+*  ELSE.
+*    CLEAR gwa_repartos.
+*    MOVE-CORRESPONDING repartos_imp TO gwa_repartos.
+*    gwa_repartos-
+*
+*
+*  ENDIF.
+
+ENDFUNCTION.

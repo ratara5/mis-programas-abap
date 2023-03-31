@@ -1,0 +1,7 @@
+SELECT COUNT( * )
+  FROM marc
+ WHERE werks LIKE 'SV%'.
+
+IF sy-subrc EQ 0.
+
+ENDIF.
