@@ -1,0 +1,187 @@
+*-----------------------
+*Función para convertir xls en txt
+*-----------------------
+
+*&---------------------------------------------------------------------*
+*&*************************         TYPES       ************************
+*&---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_structure,
+         field1  TYPE string,
+         field2  TYPE string,
+         field3  TYPE string,
+         field4  TYPE string,
+         field5  TYPE string,
+         field6  TYPE string,
+         field7  TYPE string,
+         field8  TYPE string,
+         field9  TYPE string,
+         field10 TYPE string,
+         field11 TYPE string,
+         field12 TYPE string,
+         field13 TYPE string,
+       END OF ty_structure,
+
+       BEGIN OF ty_structure_final,
+         field1  TYPE ekpo-ebeln,
+         field2  TYPE ekpo-ebelp,
+         field3  TYPE string,
+         field4  TYPE string,
+         field5  TYPE string,
+         field6  TYPE d,
+         field7  TYPE d,
+         field8  TYPE string,
+         field9  TYPE string,
+         field10 TYPE string,
+         field11 TYPE string,
+         field12 TYPE string,
+         field13 TYPE string,
+       END OF ty_structure_final.
+
+*&---------------------------------------------------------------------*
+*&*********************      INTERNAL TABLES       *********************
+*&---------------------------------------------------------------------*
+DATA: it_data       TYPE STANDARD TABLE OF ty_structure,
+      it_data_final TYPE STANDARD TABLE OF ty_structure_final,
+      it_excel_data TYPE STANDARD TABLE OF alsmex_tabline.
+
+*&---------------------------------------------------------------------*
+*&***********************      STRUCTURES        ***********************
+*&---------------------------------------------------------------------*
+DATA: lst_data       TYPE  ty_structure,
+      lst_data_final TYPE  ty_structure_final.
+
+*&---------------------------------------------------------------------*
+*&***********************      PARAMETERS        ***********************
+*&---------------------------------------------------------------------*
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+PARAMETERS: p_ruta TYPE rlgrap-filename OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b1.
+
+"---------------
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_ruta.
+  CALL FUNCTION 'KD_GET_FILENAME_ON_F4'    ".Función para obtener el libro excel y su ruta
+    EXPORTING
+      field_name    = p_ruta
+    CHANGING
+      file_name     = p_ruta  ".Ruta es del tipo C:\Users\Raymond\Desktop\DATOS_QUE_HAY_ML81N.xlsx
+    EXCEPTIONS
+      mask_too_long = 1
+      OTHERS        = 2.
+
+"---------------
+
+REFRESH it_excel_data.
+
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'         ".Función para trasladar datos de libro excel a tabla interna
+    EXPORTING
+      filename                = p_ruta
+      i_begin_col             = 1
+      i_begin_row             = 2
+      i_end_col               = 13     " 100
+      i_end_row               = 20
+    TABLES
+      intern                  = it_excel_data
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+
+  IF sy-subrc <> 0.
+     MESSAGE 'Error al cargar la ruta' TYPE 'S' DISPLAY LIKE 'E'.
+  ELSE.
+    PERFORM procesa.
+  ENDIF.
+
+"----------------
+
+ LOOP AT it_excel_data ASSIGNING FIELD-SYMBOL(<fs_excel_data>).  "Conformando tabla interna con campos identificadores de fila, columna y valor
+
+    CASE <fs_excel_data>-col.
+      WHEN '01'.
+        lst_data-field1  = <fs_excel_data>-value. "Número de pedido
+      WHEN '02'.
+        lst_data-field2  = <fs_excel_data>-value. "Número de posición
+      WHEN '03'.
+        lst_data-field3  = <fs_excel_data>-value. "Número de código de servicio
+      WHEN '04'.
+        lst_data-field4  = <fs_excel_data>-value. "Cantidad de servicio
+      WHEN '05'.
+        lst_data-field5  = <fs_excel_data>-value. "Texto breve de cabecera de documento de hoja de entrada
+      WHEN '06'.
+        lst_data-field6  = <fs_excel_data>-value. "Periodo de inicio
+      WHEN '07'.
+        lst_data-field7  = <fs_excel_data>-value. "Periodo final
+      WHEN '08'.
+        lst_data-field8  = <fs_excel_data>-value. "Encargado interno
+      WHEN '09'.
+        lst_data-field9  = <fs_excel_data>-value. "Encargado externo
+      WHEN '10'.
+        lst_data-field10 = <fs_excel_data>-value. "Grupo de liberación
+      WHEN '11'.
+        lst_data-field11 = <fs_excel_data>-value. "Estrategia de liberación
+      WHEN '12'.
+        lst_data-field12 = <fs_excel_data>-value. "Referencia - opcional
+      WHEN '13'.
+        lst_data-field13 = <fs_excel_data>-value. "Texto de documento - opcional
+      WHEN OTHERS.
+
+    ENDCASE.
+
+    AT END OF row.
+      APPEND lst_data TO it_data. ". Conformando tabla interna con cuerpo similar al de los datos en la hoja de excel
+      CLEAR lst_data.
+    ENDAT.
+
+  ENDLOOP.
+
+  LOOP AT it_data INTO lst_data.
+
+
+    MOVE-CORRESPONDING lst_data TO lst_data_final.
+
+    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT' ". Funcion de conversion de EBELN con su input correcto
+      EXPORTING
+        input  = lst_data_final-field1
+      IMPORTING
+        output = lst_data_final-field1.
+
+
+    IF sy-subrc <> 0.
+* Implementar posible error aqui
+    ENDIF.
+
+    APPEND lst_data_final TO it_data_final.
+
+  ENDLOOP.
+
+"------------
+
+"Qué hacer con la it?
+
+"------------
+  CALL FUNCTION 'GUI_DOWNLOAD'
+    EXPORTING
+*     BIN_FILESIZE            =
+      filename                = path
+      filetype                = 'BIN' "'ASC'?
+*     APPEND                  = ' '
+*     CODEPAGE                =
+*     NO_BYTEORDER_MARK       = ' '
+* IMPORTING xfxvxvcxc
+*     FILELENGTH              = c
+    TABLES
+      data_tab                = it_data_final
+*     FORMAT_TAB              =
+    EXCEPTIONS
+      file_write_error        = 1
+      no_batch                = 2
+      gui_refuse_filetransfer = 3
+      invalid_type            = 4
+      no_authority            = 5
+      unknown_error           = 6.
+
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+

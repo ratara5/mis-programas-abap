@@ -1,0 +1,188 @@
+*&---------------------------------------------------------------------*
+*& Report YPAYS2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ypays2.
+*---------------------------------------------------------------------*
+* Definición de tipos
+*---------------------------------------------------------------------*
+TYPES: BEGIN OF ty_data,
+         str1 TYPE string,
+         str2 TYPE string,
+       END OF ty_data.
+
+
+*---------------------------------------------------------------------*
+* Definición de variables
+*---------------------------------------------------------------------*
+DATA: gs_asunto       TYPE sodocchgi1-obj_descr, " Asunto de Correo
+      gs_remitente    TYPE adr6-smtp_addr,       " Remitente de Correo
+      gs_destinatario TYPE adr6-smtp_addr,       " Destinatario de Correo
+      gs_xhtml        TYPE xstring,              " Mensaje Formato XString
+      gs_html         TYPE string,               " Mensaje Formato String
+
+
+
+      gs_xattachment  TYPE xstring,        " Adjunto Formato XString
+      gs_attachment   TYPE string,                     " Adjunto Formato XString
+      gt_attachment2  TYPE STANDARD TABLE OF string,
+      gs_attachment2  TYPE string,
+      w_subject       TYPE sofolenti1-obj_descr,
+      wa_data         TYPE ty_data.
+
+
+*---------------------------------------------------------------------*
+* Definición de tablas
+*---------------------------------------------------------------------*
+DATA: gtd_hex   TYPE STANDARD TABLE OF solix, " Mensaje de Correo
+      it_data   TYPE STANDARD TABLE OF ty_data,
+      tmp_solix TYPE STANDARD TABLE OF solix.
+
+*---------------------------------------------------------------------*
+* Clases de referencia
+*---------------------------------------------------------------------*
+DATA: lcl_send_request  TYPE REF TO cl_bcs,
+      lcl_remitente     TYPE REF TO cl_cam_address_bcs,
+      lcl_document      TYPE REF TO cl_document_bcs,
+      lcx_bcs_exception TYPE REF TO cx_bcs,
+      lcl_receptor      TYPE REF TO cl_cam_address_bcs.
+"LCL_ATTACHMENT      TYPE REF TO CL_GOS_DOCUMENT_SERVICE.
+
+*---------------------------------------------------------------------*
+* Asignaciones respectivas
+*---------------------------------------------------------------------*
+""Destinatario
+gs_destinatario   = 'ematago.labo@gmail.com'.
+
+""Remitente
+gs_remitente      = 'ematago.labo@gmail.com'.
+
+""Asunto
+gs_asunto         = 'Test comunicación correos'.
+
+*---------------------------------------------------------------------*
+* Estructura HTML del cuerpo del correo
+*---------------------------------------------------------------------*
+""Mensaje de Correo
+CONCATENATE gs_html '<table><tr><td><b><i><u><font color="red">' 'Test comunicación correos'
+                    '</font></u></i></b></td></tr></table>' INTO gs_html.
+
+CONCATENATE gs_html '<br>' INTO gs_html.
+
+CONCATENATE gs_html '<table><tr><td>' 'Salto de linea.' '</td></tr></table>' INTO gs_html.
+
+""Conversión String a XString
+CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+  EXPORTING
+    text   = gs_html
+  IMPORTING
+    buffer = gs_xhtml.
+
+""Conversión XString a Binario
+CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+  EXPORTING
+    buffer     = gs_xhtml
+  TABLES
+    binary_tab = gtd_hex.
+
+*---------------------------------------------------------------------*
+* Archivo adjunto del correo
+*---------------------------------------------------------------------*
+""Conformar el archivo a adjuntar(Esto puede ser a partir de una it que a su vez proceda de un excel)
+wa_data-STR1 = 'valor1'.
+wa_data-STR2 = 'valor2'.
+APPEND wa_data to it_data.
+clear wa_data.
+wa_data-STR1 = 'valor3'.
+wa_data-STR2 = 'valor4'.
+APPEND wa_data to it_data.
+clear wa_data.
+
+CLASS cl_abap_char_utilities DEFINITION LOAD.
+
+CONCATENATE 'Columna1' 'Columna2' INTO gs_attachment SEPARATED BY cl_abap_char_utilities=>horizontal_tab.
+
+*    APPEND GS_ATTACHMENT2 TO GT_ATTACHMENT2.
+
+*  CONVERTIR tabla interna a estructura de texto
+
+LOOP AT it_data ASSIGNING FIELD-SYMBOL(<fs_data>).
+  CLEAR gs_attachment2.
+  CONCATENATE <fs_data>-str1 <fs_data>-str2 INTO gs_attachment2 SEPARATED BY cl_abap_char_utilities=>horizontal_tab.
+  CONCATENATE gs_attachment cl_abap_char_utilities=>newline cl_abap_char_utilities=>newline gs_attachment2 INTO gs_attachment.
+
+ENDLOOP.
+
+
+*CONCATENATE gs_attachment 'Este es un archivo adjunto' INTO gs_attachment.
+
+""Conversión String a XString
+CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+  EXPORTING
+    text   = gs_attachment
+  IMPORTING
+    buffer = gs_xattachment.
+
+""Conversión XString a Binario
+CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+  EXPORTING
+    buffer     = gs_xattachment
+  TABLES
+    binary_tab = tmp_solix.
+
+w_subject = 'archivo.txt'.
+
+*---------------------------------------------------------------------*
+* Construcción del correo electronico
+*---------------------------------------------------------------------*
+TRY.
+
+    "CALL METHOD LCL_ATTACHMENT->CL_GOS_DOCUMENT_SERVICE
+
+
+    ""Añadir remitente
+    lcl_send_request = cl_bcs=>create_persistent( ).
+    lcl_remitente    = cl_cam_address_bcs=>create_internet_address( gs_remitente  ).
+
+    CALL METHOD lcl_send_request->set_sender
+      EXPORTING
+        i_sender = lcl_remitente.
+
+    ""Añadir destinatario
+    lcl_receptor = cl_cam_address_bcs=>create_internet_address( gs_destinatario ).
+
+    CALL METHOD lcl_send_request->add_recipient
+      EXPORTING
+        i_recipient = lcl_receptor
+        i_copy      = space.
+
+    ""Añadir cuerpo
+    lcl_document  = cl_document_bcs=>create_document(
+    i_type        = 'HTM'
+    i_hex         = gtd_hex
+    i_subject     = gs_asunto ).
+
+    ""Adjuntar archivo
+    CALL METHOD lcl_document->add_attachment
+      EXPORTING
+        i_attachment_type    = 'BIN' ".'PDF' (No probado) / 'RAW' (Llega en carácteres orientales) / 'BIN' no tiene ext [Abrir con] ctnido en ES
+        i_attachment_subject = w_subject
+        i_att_content_hex    = tmp_solix[].
+
+    ""Añadir documento a enviar
+    CALL METHOD lcl_send_request->set_document( lcl_document ).
+
+*    ---------------------------------------------------------------------*
+*     Envio del correo electronico y catchs
+*    ---------------------------------------------------------------------*
+    CALL METHOD lcl_send_request->send( ).
+    COMMIT WORK.
+
+  CATCH cx_bcs INTO lcx_bcs_exception.
+    ""Mensaje de Error
+    cl_message_helper=>set_msg_vars_for_if_msg( lcx_bcs_exception ) .
+    MESSAGE ID sy-msgid TYPE 'E' NUMBER sy-msgno
+      WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+
+ENDTRY.
